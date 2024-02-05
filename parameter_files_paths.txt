@@ -1,0 +1,2 @@
+/home/segonzal/Documents/Repositories/iss-nf/parameter_files/elastix_parameters_2D.0.txt
+/home/segonzal/Documents/Repositories/iss-nf/parameter_files/elastix_parameters_2D.1.txt
