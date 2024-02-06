@@ -3,7 +3,7 @@ import fire
 
 def estimate_tile_size(image_path: str, max_size: int = 10000) -> None:
 
-    img = tif.imread(image_path)
+    img = tif.memmap(image_path)
     image_shape = img.shape
 
     max_size = min(image_shape[0], image_shape[1], max_size)
