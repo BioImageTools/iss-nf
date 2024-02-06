@@ -17,7 +17,7 @@ workflow {
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch)
 
     // Estimate tile size based on the registered anchor image:
-    TILE_SIZE_ESTIMATOR APPLY_TRANSFORM.out
+    size_ch = TILE_SIZE_ESTIMATOR(params.inputRefImagePath)
 
     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
