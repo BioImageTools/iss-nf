@@ -8,6 +8,7 @@ This project is about refactoring the code from the issdecoder package to make i
  - [ ] Docker/Singularity images
  - [ ] Find better way to define input parameters
  - [ ] Registration module (Sebas)
+ - [ ] Tile size estimator
  - [ ] Tiling module
  - [ ] Formatting to StarFISH
  - [ ] StarFISH decoding and output for PoSTcode
