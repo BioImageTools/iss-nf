@@ -38,6 +38,7 @@ target
 **.tif
 **.csv
 **/Final_Results
+test_workflow.nf
 
 # Apptainer
 **.sif
