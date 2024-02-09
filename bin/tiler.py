@@ -87,7 +87,7 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
             coords.col, coords.row, 0,
             coords.col + tile_size, coords.row + tile_size, 0.0001])
 
-	write_coords_file(
+    write_coords_file(
 	    coordinates,
             os.path.join(output_dir, f'coordinates-r{r}-c{c}-z0.csv')) 
 
@@ -128,7 +128,4 @@ def tile_images(image_path, tile_size,  output_dir) -> None:
 if __name__ == "__main__":
     
     tile_images(image_path, tile_size, output_dir)
-            
-            
-            
-            
+	
