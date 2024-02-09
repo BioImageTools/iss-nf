@@ -37,6 +37,7 @@ def get_round_id(name):
     return r
 
 def get_ch_id(name):
+    ch_map = {'Cy7': 0, 'Cy5': 2, 'Cy3': 1, 'FITC': 3}
     return [ch_map[flcr] for flcr in ch_map if flcr in name][0]
 
 def get_tile_coordinates(tile_size: int, image_shape) -> None:
@@ -68,7 +69,6 @@ def get_tile_coordinates(tile_size: int, image_shape) -> None:
 def tile_image(image, image_name, tile_size, img_type, output_dir,
               tile_coordinates):
 
-    coordinates = []
     for tile_id in tile_coordinates:
         coords = tile_coordinates[tile_id]
         tile = select_roi(
@@ -76,21 +76,25 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
         tile = pad_to_size(tile, tile_size)
 
         r = 0 if 'anchor' in img_type \
-            else self.get_round_id(image_name)
+            else get_round_id(image_name)
 
-        c = self.get_ch_id(image_name) \
+        c = get_ch_id(image_name) \
             if img_type in ['primary'] else 0
 
         file_name = f'{img_type}-f{tile_id}-r{r}-c{c}-z0.tiff'
+        img_saving_path = os.path.join(output_dir, file_name)
         
-        tiff.imsave(os.path.join(output_dir, file_name), tile)
-
-        coordinates.append([
+        tiff.imsave(img_saving_path, tile)
+        coordinates = ([
             tile_id, r, c, 0,
             coords.col, coords.row, 0,
             coords.col + tile_size, coords.row + tile_size, 0.0001])
+        
+        path_to_csv =  os.path.join(output_dir, f'coordinates_{tile_id}.csv')
+        coords_to_csv =  write_coords_file([coordinates], path_to_csv)
+        
+        format_structured_dataset(img_saving_path, path_to_csv, output_dir, ImageFormat.TIFF,)
 
-    return coordinates
 
 def write_coords_file(coordinates, file_path) -> None:
     coords_df = pd.DataFrame(
@@ -99,8 +103,8 @@ def write_coords_file(coordinates, file_path) -> None:
                  'xc_min', 'yc_min', 'zc_min',
                  'xc_max', 'yc_max', 'zc_max'))
     coords_df.to_csv(file_path, index=False)
+    return coords_df
 
-###SpaceTx
 def merge_outputs(spacetx_dir: str, merge_dirs: list) -> None:
     for i, d in enumerate(merge_dirs):
         with open(os.path.join(
@@ -128,8 +132,8 @@ def copy_codebook_file(spacetx_dir: str, codebook_file: str) -> None:
 
     copyfile(codebook_file,
                 os.path.join(spacetx_dir, 'primary', 'codebook.json'))
-##########
-def tile_images(image_path, tile_size,  output_dir) -> None:
+
+def tile_spaceTx_images(image_path, tile_size,  output_dir) -> None:
     
     image = tiff.memmap(image_path)
     image_shape = image.shape
@@ -149,22 +153,12 @@ def tile_images(image_path, tile_size,  output_dir) -> None:
     tile_coordinates = get_tile_coordinates(tile_size, image_shape)
     
     coordinates = tile_image(image, image_name, tile_size, img_type, output,
-                            tile_coordinates)
-    #####SpaceTx
-    format_structured_dataset(output, coordinates, output, ImageFormat.TIFF,)
-    #merge_subdirs = [d for d in subdirs if d != 'primary']
-    #merge_outputs(output_dir, merge_subdirs)
-    #copy_codebook_file(output_dir, codebook_path)
-    ############
-
-    write_coords_file(
-        coordinates,
-        os.path.join(output, 'coordinates.csv'))    
+                            tile_coordinates)  
             
         
 if __name__ == "__main__":
     
-    tile_images(image_path, tile_size, output_dir)
+    tile_spaceTx_images(image_path, tile_size, output_dir)
             
             
             
