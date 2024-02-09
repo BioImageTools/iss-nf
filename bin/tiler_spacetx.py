@@ -93,7 +93,7 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
         path_to_csv =  os.path.join(output_dir, f'coordinates_{tile_id}.csv')
         coords_to_csv =  write_coords_file([coordinates], path_to_csv)
         
-        format_structured_dataset(img_saving_path, path_to_csv, output_dir, ImageFormat.TIFF,)
+        format_structured_dataset(output_dir, path_to_csv, output_dir, ImageFormat.TIFF,)
 
 
 def write_coords_file(coordinates, file_path) -> None:
