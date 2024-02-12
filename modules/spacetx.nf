@@ -46,5 +46,5 @@ process SpaceTx {
 
 
 workflow {
-    SpaceTx(inputDir: params.imageDir, outputDir: params.outputDir)
+    SpaceTx(inputDir: params.imageDir, outputDir: params.outputDir_spaceTx)
 }
