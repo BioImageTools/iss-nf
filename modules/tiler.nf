@@ -18,10 +18,21 @@ process TILING {
 
     script:
     """
-    mkdir -p ${outputDir}/primary
-    mkdir -p ${outputDir}/anchor_nuclei
-    mkdir -p ${outputDir}/anchor_dots
-    mkdir -p ${outputDir}/nuclei
+    if [ ! -d ${outputDir}/primary ]; then
+        mkdir -p ${outputDir}/primary
+    fi
+    
+    if [ ! -d ${outputDir}/anchor_nuclei ]; then
+        mkdir -p ${outputDir}/anchor_nuclei
+    fi
+    
+    if [ ! -d ${outputDir}/anchor_dots ]; then
+        mkdir -p ${outputDir}/anchor_dots
+    fi
+    
+    if [ ! -d ${outputDir}/nuclei ]; then
+        mkdir -p ${outputDir}/nuclei
+    fi
 
     if [[ ${image.name} =~ '_DAPI' ]]; then
         python tiler.py ${image} ${tileSize} ${outputDir}/nuclei
