@@ -5,17 +5,24 @@ from starfish.types import Axes, FunctionSource
 
 
 def find_spots( json_path,
+                images=None,
+                reference=None,
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,
                 threshold=.003,
                 measurement_type='mean'
-):
+)-> ImageStack:
+    
     experiment = Experiment.from_json(json_path)
    
     fov = experiment.fov()
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')
+    
+    if images is not None and reference is not None:
+        primary = images
+        reference = reference
     
     bd = FindSpots.BlobDetector(
         min_sigma=min_sigma,
@@ -31,7 +38,8 @@ def find_spots( json_path,
 
     return spots
 
+
 if __name__ == "__main__":
     
-    json_path = '/path/to/primary/experiment.json'
+    json_path = '/path/to/SpaceTx/primary/experiment.json'
     find_spots(json_path)
