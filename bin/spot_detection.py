@@ -1,6 +1,5 @@
 from starfish.spots import FindSpots
 from starfish import FieldOfView, Experiment
-from starfish.core.imagestack.imagestack import ImageStack
 from starfish.types import Axes, FunctionSource
 
 
@@ -13,7 +12,7 @@ def find_spots( json_path,
                 num_sigma=30,
                 threshold=.003,
                 measurement_type='mean'
-)-> ImageStack:
+):
     
     final_spots = {}
     experiment = Experiment.from_json(json_path)
