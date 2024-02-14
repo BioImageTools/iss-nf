@@ -4,7 +4,7 @@ from starfish.types import Axes, FunctionSource
 
 
 def find_spots( json_path,
-                test_tile_idx,
+                test_tile_idx=None,
                 images=None,
                 reference=None,
                 min_sigma=1,
@@ -15,11 +15,11 @@ def find_spots( json_path,
 ):
     
     final_spots = {}
-    experiment = Experiment.from_json(json_path)
+    exp = Experiment.from_json(json_path)
     
     if test_tile_idx is not None:
         exp = {fov_name: fov
-               for i, (fov_name, fov) in enumerate(experiment.items())
+               for i, (fov_name, fov) in enumerate(exp.items())
                if i in test_tile_idx} 
         
     for fov_name, fov in exp.items():
