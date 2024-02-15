@@ -3,6 +3,7 @@
 //params.inputMovImagesLearnPath = "/scratch/segonzal/Sergio/Matias/Stitched/r{2,3,4}_DAPI.tif"
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM } from './modules/registration.nf'
+include { TILING } from './modules/tiler.nf'
 
 workflow {
     movingLearn_ch = Channel
@@ -26,4 +27,6 @@ workflow {
     // the SampleID for combining both channels:
     registered_out_ch = APPLY_TRANSFORM(learnTransformation_ch.combine(moving_ch, by:0))
 
+    // Run the tiling:
+    tiling_round_channel_ch = TILING(registered_out_ch, params.tile_size)
 }
