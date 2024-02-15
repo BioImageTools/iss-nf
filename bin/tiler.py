@@ -1,4 +1,5 @@
 import os
+import fire
 import csv
 from collections import namedtuple
 from typing import Union
@@ -10,6 +11,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from skimage.transform import resize, rescale
 
+# For future changes:
+ch_map = {'488': 0, '561': 1, '638': 2}
+# Couple of missing things:
+# 'coordinates.csv' missing 'fov' name and also for additional rounds/channels
 
 def needs_padding(tile, tile_size) -> bool:
     return any([tile.shape[i] < tile_size for i in [0, 1]])
@@ -30,8 +35,9 @@ def select_roi(image, roi):
                  roi.col:roi.col + roi.ncols]
 
 def get_round_id(name):
-    r = int(name.split('r')[1].split('_')[0])
-    r -= 1  
+    #r = int(name.split('r')[1].split('_')[0])
+    #r -= 1
+    r = int(name.split('_')[1][-1])
     return r
 
 def get_ch_id(name):
@@ -74,9 +80,9 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
         tile = pad_to_size(tile, tile_size)
 
         r = 0 if 'anchor' in img_type \
-            else self.get_round_id(image_name)
+            else get_round_id(image_name)
 
-        c = self.get_ch_id(image_name) \
+        c = get_ch_id(image_name) \
             if img_type in ['primary'] else 0
 
         file_name = f'{img_type}-f{tile_id}-r{r}-c{c}-z0.tiff'
@@ -101,7 +107,7 @@ def write_coords_file(coordinates, file_path) -> None:
                  'xc_max', 'yc_max', 'zc_max'))
     coords_df.to_csv(file_path, index=False)
 
-def tile_images(image_path, tile_size,  output_dir) -> None:
+def tile_images(image_path, tile_size, output) -> None:
     
     image = tiff.memmap(image_path)
     image_shape = image.shape
@@ -116,16 +122,23 @@ def tile_images(image_path, tile_size,  output_dir) -> None:
     else:
         img_type = 'primary'
         
-    output = os.path.join(output_dir, img_type)
-
-    tile_coordinates = get_tile_coordinates(tile_size, image_shape)
     
-    coordinates = tile_image(image, image_name, tile_size, img_type, output,
-                            tile_coordinates)
+    output = os.path.join(output, img_type)
+
+    if img_type != 'nuclei':
+        #os.makedirs(img_type)
+        tile_coordinates = get_tile_coordinates(tile_size, image_shape)
+    
+        coordinates = tile_image(image, image_name, tile_size, img_type, output,
+                                tile_coordinates)
+    else:
+        pass
 
             
         
 if __name__ == "__main__":
-    
-    tile_images(image_path, tile_size, output_dir)
+    cli = {
+        "run_tilling": tile_images
+    }
+    fire.Fire(cli)
 	

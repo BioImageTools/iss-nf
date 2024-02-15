@@ -1,20 +1,21 @@
-#!/usr/bin/env nextflow
-
-params.imageDir = '/path/to/images'
-params.outputDir = '/path/to/Tiled_images'
+// params.imageDir = '/path/to/images'
+params.outputDir = '/scratch/segonzal/TiledOutput'
+pythonScript = "${workflow.projectDir}/bin/tiler.py"
 
 process TILING {
 
     input:
-    file image from params.imageDir
-    val outputDir
+    tuple val(roundID), path(transformedImage)
+    // file image from params.imageDir
     val tileSize
+    // val tileSize
 
     output:
-    path "${outputDir}/primary/${image.baseName}_tiled.tif" into primaryTiled,
-    path "${outputDir}/anchor_nuclei/${image.baseName}_tiled.tif" into anchorNucleiTiled
-    path "${outputDir}/anchor_dots/${image.baseName}_tiled.tif" into anchorDapiTiled
-    path "${outputDir}/nuclei/${image.baseName}_tiled.tif" into dapiTiled
+    path("${params.outputDir}/primary")
+    path("coordinates*.csv")
+    //path "${outputDir}/anchor_nuclei/${image.baseName}_tiled.tif" into anchorNucleiTiled
+    //path "${outputDir}/anchor_dots/${image.baseName}_tiled.tif" into anchorDapiTiled
+    //path "${outputDir}/nuclei/${image.baseName}_tiled.tif" into dapiTiled
 
     script:
     """
@@ -49,6 +50,6 @@ process TILING {
     """
 }
 
-workflow {
-    TILING(inputDir: params.imageDir, outputDir: params.outputDir, tileSize: params.tileSize)
-}
+//workflow {
+//    TILING(inputDir: params.imageDir, outputDir: params.outputDir, tileSize: params.tileSize)
+//}
