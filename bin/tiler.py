@@ -12,7 +12,8 @@ import matplotlib.patches as patches
 from skimage.transform import resize, rescale
 
 # For future changes:
-ch_map = {'488': 0, '561': 1, '638': 2}
+ch_map = {'ch0': 0, 'ch1': 1, 'ch2': 2, 'ch3': 3}
+
 # Couple of missing things:
 # 'coordinates.csv' missing 'fov' name and also for additional rounds/channels
 
@@ -41,6 +42,7 @@ def get_round_id(name):
     return r
 
 def get_ch_id(name):
+    # Note! Maybe this should come from some JSON with experiment metadata!
     return [ch_map[flcr] for flcr in ch_map if flcr in name][0]
 
 def get_tile_coordinates(tile_size: int, image_shape) -> None:
@@ -86,8 +88,9 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
             if img_type in ['primary'] else 0
 
         file_name = f'{img_type}-f{tile_id}-r{r}-c{c}-z0.tiff'
+        #tiff.imsave(os.path.join(output_dir, file_name), tile) Original Nima
         tiff.imsave(os.path.join(output_dir, file_name), tile)
-
+        
         coordinates.append([
             tile_id, r, c, 0,
             coords.col, coords.row, 0,
@@ -123,22 +126,19 @@ def tile_images(image_path, tile_size, output) -> None:
         img_type = 'primary'
         
     
-    output = os.path.join(output, img_type)
+    #output = os.path.join(output, img_type)
 
-    if img_type != 'nuclei':
+    #if img_type != 'nuclei':
         #os.makedirs(img_type)
-        tile_coordinates = get_tile_coordinates(tile_size, image_shape)
+    tile_coordinates = get_tile_coordinates(tile_size, image_shape)
     
-        coordinates = tile_image(image, image_name, tile_size, img_type, output,
+    coordinates = tile_image(image, image_name, tile_size, img_type, output,
                                 tile_coordinates)
-    else:
-        pass
-
             
         
 if __name__ == "__main__":
     cli = {
-        "run_tilling": tile_images
+        "run_tiling": tile_images
     }
     fire.Fire(cli)
 	
