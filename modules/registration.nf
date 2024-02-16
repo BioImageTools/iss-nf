@@ -43,10 +43,10 @@ process NORMALIZE {
     debug true
 
     input:
-    tuple val(roundID), path(imagePath)
+    tuple val(sampleID), path(imagePath)
 
     output:
-    tuple val(roundID), path("*.tif")
+    tuple val(sampleID), path("*.tif")
 
     script:
     """
