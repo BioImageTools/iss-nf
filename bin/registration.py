@@ -118,7 +118,7 @@ def learn_transform(
         f"{round_id}_test_transformation.txt"
     )
     
-    return f'Learning transformation from test is done!'
+    #return f'Learning transformation from test is done!'
     
 def apply_transform(
     parameter_result_transf: str,
