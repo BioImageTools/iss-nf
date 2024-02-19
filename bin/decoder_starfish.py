@@ -10,9 +10,12 @@ def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTab
     decoder = DecodeSpots.PerRoundMaxChannel(
         codebook=codebook,
     )
-    decoded = decoder.run(spots=spots)
+    decoded_spots = {}
+    for fov_name, spot in spots.items():
+        decoded = decoder.run(spots=spot)
+        decoded_spots[fov_name] = decoded
 
-    return decoded
+    return decoded_spots
 
 if __name__ == "__main__":
     
