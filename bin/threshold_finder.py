@@ -21,6 +21,14 @@ remove_genes = ['IGHA1', 'IGHG1', 'IGHD', 'IGHM']
 
 invalid_codes = ['infeasible', 'background', 'nan']
 
+n_genesPanel = 246
+
+if remove_genes is not None:
+    n_gene_panel = n_genesPanel - len(remove_genes) + len(empty_barcodes)
+else:
+    n_gene_panel = n_genesPanel + len(empty_barcodes)
+        
+        
 def select_best_threshold1(thresholds, detected_spots, decoded_spots, false_discovery_rates):
 
     best_fdr = float('inf')
@@ -123,7 +131,7 @@ def tile_picker(imgs_path, numTiles=50):
     return picked_tile
 
 
-def get_fdr(empties, total, n_gene_panel=242, n_emptyBarcodes=16):
+def get_fdr(empties, total, n_gene_panel=246, n_emptyBarcodes=16):
     return (empties / total) * (n_gene_panel / n_emptyBarcodes)
 
 
@@ -131,7 +139,7 @@ def auto_threshold(tiles_path, json_path, n_tilePicker=50, min_thr=.0005, max_th
     
     tile = tile_picker(tiles_path, n_tilePicker)
     thresh_values = np.logspace(np.log10(min_thr), np.log10(max_thr), n_vals, base=10)
-
+        
     results = []
     for threshold in thresh_values:
         spots = find_spots(json_path, test_tile_idx=[tile], threshold=threshold)
@@ -150,12 +158,12 @@ def auto_threshold(tiles_path, json_path, n_tilePicker=50, min_thr=.0005, max_th
         total_filtered_count = len(filtered_df)
         empty_barcodes_count = df[df['Code'].isin(empty_barcodes)].shape[0]
         invalid_codes_count = df[df['Code'].isin(invalid_codes)].shape[0]
-
+        
         df_general = df_general.append({'threshold': thresh,
                     '#Detected': len(df),
                     '#Decoded': total_filtered_count,
                     'Percent': total_filtered_count/len(df) * 100,
-                    'FDR': get_fdr(empty_barcodes_count, len(df))}, ignore_index=True)
+                    'FDR': get_fdr(empty_barcodes_count, len(df), n_gene_panel)}, ignore_index=True)
 
     thresholds = df_general['threshold']
     detected_spots = df_general['#Detected']
