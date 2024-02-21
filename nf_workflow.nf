@@ -3,8 +3,8 @@
 //params.inputMovImagesLearnPath = "/scratch/segonzal/Sergio/Matias/Stitched/r{2,3,4}_DAPI.tif"
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
-include { LEARN_TRANSFORM; APPLY_TRANSFORM } from './modules/registration.nf'
 include { TILING } from './modules/tiler.nf'
+include { SPACETX } from './modules/spacetx.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -16,6 +16,23 @@ def filter_channel(image_id) {
     } else {
         return 'primary'
     }
+}
+
+process JOIN_COORDINATES {
+    //publishDir "JoinedCoords", mode: "copy", overwrite: true
+    debug true
+
+    input:
+    tuple val(image_type), path(x)
+
+    output:
+    //stdout
+    tuple val(image_type), file("*.csv")
+
+    script:
+    """
+    python ${workflow.projectDir}/bin/join_coordinates.py join $x
+    """
 }
 
 workflow {
@@ -66,5 +83,35 @@ workflow {
     //redefined_merged_ch.view()
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch)
-    tiled_ch[0].view()
+    //tiled_ch[0].view()
+
+    // To do: merge 'coordinates-fov*'
+    joined_coords_ch = tiled_ch[1].groupTuple()
+
+    //joined_coords_ch.view()
+
+    /*
+    joined_coords_ch
+        .collectFile(keepHeader: true)
+        .view()
+    */
+
+    // joined_coords_ch.collect().view()
+    //joined_coords_ch.view()
+    //joined_coords_ch.view()
+    coords4spacetx = JOIN_COORDINATES(joined_coords_ch)
+    //coords4spacetx.view()
+
+    //collected_tiles = tiled_ch[0].collect()
+    //collected_tiles.view()
+    grouped_tiled_images = tiled_ch[0].groupTuple()
+    //grouped_tiled_images.view()
+    // Flatten the files on the tuple:
+    grouped_tiled_images_flat = grouped_tiled_images
+        .map { it ->
+            [it[0], it[1].flatten()]}
+    //grouped_tiled_images_flat.view()
+    grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
+    //grouped_input.view()
+    spacetx_out = SPACETX(grouped_input)
 }

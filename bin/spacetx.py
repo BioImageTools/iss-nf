@@ -14,4 +14,3 @@ if __name__ == "__main__":
         "run_formating": spaceTx_format
     }
     fire.Fire(cli)
-            
