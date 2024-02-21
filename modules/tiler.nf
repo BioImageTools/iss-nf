@@ -11,18 +11,10 @@ process TILING {
 
     output:
     tuple val(sampleID), path("*.tiff")
-    path("*.csv")
-    //path("*")
-    //path "${outputDir}/anchor_nuclei/${image.baseName}_tiled.tif" into anchorNucleiTiled
-    //path "${outputDir}/anchor_dots/${image.baseName}_tiled.tif" into anchorDapiTiled
-    //path "${outputDir}/nuclei/${image.baseName}_tiled.tif" into dapiTiled
+    tuple val(sampleID), path("*.csv")
 
     script:
     """
     python ${pythonScript} run_tiling $transformedImage 200 ./
     """
 }
-
-//workflow {
-//    TILING(inputDir: params.imageDir, outputDir: params.outputDir, tileSize: params.tileSize)
-//}
