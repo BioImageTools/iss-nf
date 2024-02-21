@@ -43,17 +43,18 @@ workflow {
             sampleID = f.baseName
             return [sampleID[0,1], f]
          }
-
+         
     // Learn transformations and save TXT files with output:
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath)
 
     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
         .fromPath(params.movingImagesApplyPath)
+        .filter { !it.endsWith("_DAPI.tif") }
         .map { it -> 
             [it.baseName[0,1], it]}
-
-
+        .view()
+/*
     // Use previous channel and LEARN_TRANSFORM output to apply transformations based on 
     // the SampleID for combining both channels:
     registered_out_ch = APPLY_TRANSFORM(learnTransformation_ch.combine(moving_ch, by:0))
@@ -114,4 +115,5 @@ workflow {
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
     //grouped_input.view()
     spacetx_out = SPACETX(grouped_input)
+*/
 }
