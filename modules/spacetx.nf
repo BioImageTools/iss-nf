@@ -1,43 +1,21 @@
-#!/usr/bin/env nextflow
+pythonScript = "${workflow.projectDir}/bin/spacetx.py"
 
-params.imageDir = '/path/to/images'
-params.outputDir = '/path/to/Tiled_images'
-
-process TILING_SpaceTx {
+process SPACETX {
 
     input:
-    file image from params.imageDir
-    val outputDir
-    val tileSize
+    tuple val(imageType), path('*'), path(coords)
+    //file coordinates from params.imageDir
 
     output:
-    path "${outputDir}/primary/${image.baseName}_tiled.tif" into primaryTiled,
-    path "${outputDir}/anchor_nuclei/${image.baseName}_tiled.tif" into anchorNucleiTiled
-    path "${outputDir}/anchor_dots/${image.baseName}_tiled.tif" into anchorDapiTiled
-    path "${outputDir}/nuclei/${image.baseName}_tiled.tif" into dapiTiled
+    tuple val(imageType), path('*.json')
 
     script:
     """
-    mkdir -p ${outputDir}/primary
-    mkdir -p ${outputDir}/anchor_nuclei
-    mkdir -p ${outputDir}/anchor_dots
-    mkdir -p ${outputDir}/nuclei
-
-    if [[ ${image.name} =~ '_DAPI' ]]; then
-        python tiler_spacetx.py ${image} ${tileSize} ${outputDir}/nuclei
-        
-    elif [[ ${image.name} =~ 'anchor_nuclei' ]]; then
-        python tiler_spacetx.py ${image} ${tileSize} ${outputDir}/anchor_nuclei
-        
-    elif [[ ${image.name} =~ 'anchor_dots' ]]; then
-        python tiler_spacetx.py ${image} ${tileSize} ${outputDir}/anchor_dots
-        
-    else
-        python tiler_spacetx.py ${image} ${tileSize} ${outputDir}/primary
-    fi
+    python ${pythonScript} run_formating ./ $coords ./
     """
-}
+   }
 
-workflow {
-    TILING_SpaceTx(inputDir: params.imageDir, outputDir: params.outputDir, tileSize: params.tileSize)
-}
+
+//workflow {
+//    SpaceTx(inputDir: params.imageDir, outputDir: params.outputDir_spaceTx)
+//}
