@@ -6,6 +6,7 @@ process LEARN_TRANSFORM {
 
     input:
     tuple val(roundID), path(inputMovImagePath)
+    path(fixImagePath)
     //path(param_file)
     //tuple val(roundID), path(inputMovImagePath)
 
@@ -17,7 +18,7 @@ process LEARN_TRANSFORM {
 
     script:
     """
-    python ${pythonScript} run_learn ${params.inputRefImagePath} ${inputMovImagePath} ${params.elastix_parameter_files}
+    python ${pythonScript} run_learn $fixImagePath ${inputMovImagePath} ${params.elastix_parameter_files}
     """
 }
 
@@ -34,5 +35,21 @@ process APPLY_TRANSFORM {
     script:
     """
     python ${pythonScript} run_apply $transformPath $movingImagePath
+    """
+}
+
+process NORMALIZE {
+    publishDir "Normalized", mode: 'copy', overwrite: true
+    debug true
+
+    input:
+    tuple val(sampleID), path(imagePath)
+
+    output:
+    tuple val(sampleID), path("*.tif")
+
+    script:
+    """
+    python ${pythonScript} run_norm $imagePath
     """
 }
