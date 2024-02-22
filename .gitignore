@@ -35,6 +35,10 @@ target
 **/Detected_Spots/
 **/Registered/
 **/Assigned/
+**/Final_Tiling_Results/
+**/FormattedData/
+**/formated_test_data/
+**/Tiled/
 **.tif
 **.csv
 **/Final_Results
