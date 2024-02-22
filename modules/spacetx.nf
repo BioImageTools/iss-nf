@@ -7,15 +7,10 @@ process SPACETX {
     //file coordinates from params.imageDir
 
     output:
-    tuple val(imageType), path('*.json')
+    tuple val(imageType), path("${imageType}*")
 
     script:
     """
-    python ${pythonScript} run_formating ./ $coords ./
+    python ${pythonScript} run_formatting ./ $coords ./
     """
    }
-
-
-//workflow {
-//    SpaceTx(inputDir: params.imageDir, outputDir: params.outputDir_spaceTx)
-//}

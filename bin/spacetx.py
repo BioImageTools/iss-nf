@@ -11,6 +11,6 @@ def spaceTx_format(input_path, csv, output_path):
     
 if __name__ == "__main__":
     cli = {
-        "run_formating": spaceTx_format
+        "run_formatting": spaceTx_format
     }
     fire.Fire(cli)
