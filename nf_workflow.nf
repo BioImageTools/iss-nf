@@ -5,6 +5,7 @@
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
 include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
+include { PRINT_SPACETX } from './modules/join_spacetx.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -114,4 +115,26 @@ workflow {
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
     //grouped_input.view()
     spacetx_out = SPACETX(grouped_input)
+    // Collect all the output from SpaceTx for feeding the following parts:
+    all_spacetx_files = spacetx_out
+        .map {it ->
+            it[1]}
+        .collect()
+    
+    //all_spacetx_files.view()
+    //print_spacetx = PRINT_SPACETX(all_spacetx_files, params.experiment_json)
+    // Join all spacetx files with codebook and experiment JSONs:
+
+    //ex = Channel.fromPath([params.bothJSON])
+    //ex.view()
+    //cd = Channel.fromPath(params.CodeJSON)
+    //c = ex.mix(all_spacetx_files).view()
+    tuple_with_all = all_spacetx_files
+        .map{ path ->
+            [path, params.ExpJSON, params.CodeJSON]}
+        .flatten()
+        .toList()
+    //tuple_with_all.view()
+    print_spacetx = PRINT_SPACETX(tuple_with_all)
+    //tuple_with_all.view()
 }
