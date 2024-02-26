@@ -1,0 +1,470 @@
+{
+    "default_tile_format": "TIFF",
+    "dimensions": [
+        "zc",
+        "y",
+        "x",
+        "z",
+        "c",
+        "xc",
+        "r",
+        "yc"
+    ],
+    "extras": {},
+    "shape": {
+        "c": 4,
+        "r": 4,
+        "z": 1
+    },
+    "tiles": [
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c1-r3-z0.tiff",
+            "indices": {
+                "c": 1,
+                "r": 3,
+                "z": 0
+            },
+            "sha256": "033f13727455e04dc40604635f69c7320796c34c6eb19a744b5da16e119747b7",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c0-r1-z0.tiff",
+            "indices": {
+                "c": 0,
+                "r": 1,
+                "z": 0
+            },
+            "sha256": "cea035510b001bcf443880cf82633737d28fc1f2adaa40b665a7a1377f39ee6c",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c0-r3-z0.tiff",
+            "indices": {
+                "c": 0,
+                "r": 3,
+                "z": 0
+            },
+            "sha256": "9f25379d47f80150e184d0bae9ecd0f2ba6bc7fa6d30cf31f0b06065e79dabce",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c2-r0-z0.tiff",
+            "indices": {
+                "c": 2,
+                "r": 0,
+                "z": 0
+            },
+            "sha256": "2a6a8f8f234e197dd6e9e802f896b8bcc501207532921d481064643edbc32120",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c3-r1-z0.tiff",
+            "indices": {
+                "c": 3,
+                "r": 1,
+                "z": 0
+            },
+            "sha256": "f12d7b20b9faa73205c78d32716a7cddad2f35c52ddf8c3e0e380033ab7557da",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c1-r2-z0.tiff",
+            "indices": {
+                "c": 1,
+                "r": 2,
+                "z": 0
+            },
+            "sha256": "d170a5432fa5297e2010a448cfa29fbf5af62646ed053a29d6a29f475d7138f3",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c3-r3-z0.tiff",
+            "indices": {
+                "c": 3,
+                "r": 3,
+                "z": 0
+            },
+            "sha256": "e86bc3ababfac7644edf0b3e6a40aff74e2c24cb4370aab1be5c4fbc392a1e81",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c0-r2-z0.tiff",
+            "indices": {
+                "c": 0,
+                "r": 2,
+                "z": 0
+            },
+            "sha256": "dd8b8d22228f647c8c59e1c86dd4d01e6407b34facffa3fb242ce7459cc98465",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c3-r2-z0.tiff",
+            "indices": {
+                "c": 3,
+                "r": 2,
+                "z": 0
+            },
+            "sha256": "df4e360bda88d9c129c2a886a7b3f7d95a4347dbd77791dcc51219337f244e7b",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c2-r1-z0.tiff",
+            "indices": {
+                "c": 2,
+                "r": 1,
+                "z": 0
+            },
+            "sha256": "3cf5ad322938de7c832335d97878044fca5133e9d48e57ab56c7e0a51a9e1064",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c1-r0-z0.tiff",
+            "indices": {
+                "c": 1,
+                "r": 0,
+                "z": 0
+            },
+            "sha256": "723e8c6a1fdb1fd9e3447e5444c3f5478e2afb16346432bb4ecfcfbf8be92109",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c1-r1-z0.tiff",
+            "indices": {
+                "c": 1,
+                "r": 1,
+                "z": 0
+            },
+            "sha256": "f9893443fb6cab650f4ffa713ac4495e855163025774d20f2e76b5979448ead6",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c2-r2-z0.tiff",
+            "indices": {
+                "c": 2,
+                "r": 2,
+                "z": 0
+            },
+            "sha256": "43102904910fa0c3627a5c5539e4b8d2220ce3bbdd761676167486557d04aab3",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c0-r0-z0.tiff",
+            "indices": {
+                "c": 0,
+                "r": 0,
+                "z": 0
+            },
+            "sha256": "373a6f2e9b789addaa0925202973b40a671880db87e28632ba1c435fa7eb64d2",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c2-r3-z0.tiff",
+            "indices": {
+                "c": 2,
+                "r": 3,
+                "z": 0
+            },
+            "sha256": "8432ed3836a7ffdd42201f3357ca4efc4504646ac9bd95d7ae2aea3f4896ea0f",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        },
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "primary-fov_003-c3-r0-z0.tiff",
+            "indices": {
+                "c": 3,
+                "r": 0,
+                "z": 0
+            },
+            "sha256": "aad5c42919d3c371b4768bd91fdabf8bc6084528bb3d7ae0cf0dc440a21e4f20",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        }
+    ],
+    "version": "0.1.0"
+}

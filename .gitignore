@@ -22,6 +22,9 @@ target
 # Fiji #
 *.jar
 
+# Python #
+**/__pycache__/
+
 # Nextflow #
 **/.nextflow*
 **/.nextflow

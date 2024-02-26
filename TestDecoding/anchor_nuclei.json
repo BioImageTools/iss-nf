@@ -1,0 +1,15 @@
+{
+    "contents": {
+        "fov_000": "anchor_nuclei-fov_000.json",
+        "fov_001": "anchor_nuclei-fov_001.json",
+        "fov_002": "anchor_nuclei-fov_002.json",
+        "fov_003": "anchor_nuclei-fov_003.json",
+        "fov_004": "anchor_nuclei-fov_004.json",
+        "fov_005": "anchor_nuclei-fov_005.json",
+        "fov_006": "anchor_nuclei-fov_006.json",
+        "fov_007": "anchor_nuclei-fov_007.json",
+        "fov_008": "anchor_nuclei-fov_008.json"
+    },
+    "extras": null,
+    "version": "0.1.0"
+}

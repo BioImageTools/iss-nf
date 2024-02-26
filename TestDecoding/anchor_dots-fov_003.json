@@ -1,0 +1,50 @@
+{
+    "default_tile_format": "TIFF",
+    "dimensions": [
+        "zc",
+        "c",
+        "x",
+        "yc",
+        "y",
+        "xc",
+        "r",
+        "z"
+    ],
+    "extras": {},
+    "shape": {
+        "c": 1,
+        "r": 1,
+        "z": 1
+    },
+    "tiles": [
+        {
+            "coordinates": {
+                "xc": [
+                    0,
+                    200
+                ],
+                "yc": [
+                    200,
+                    400
+                ],
+                "zc": [
+                    0,
+                    0.0001
+                ]
+            },
+            "file": "anchor_dots-fov_003-c0-r0-z0.tiff",
+            "indices": {
+                "c": 0,
+                "r": 0,
+                "z": 0
+            },
+            "sha256": "0d73fc438dd1893abf94afa353baa8a9fef63e5f321c8eccdae72bfea029a6d8",
+            "tile_format": "TIFF",
+            "tile_shape": {
+                "x": 200,
+                "y": 200
+            }
+        }
+    ],
+    "version": "0.1.0"
+}
