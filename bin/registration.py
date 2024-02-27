@@ -62,7 +62,7 @@ def robust_min_max_norm(
 def learn_transform(
     fix_image_path: str,
     mov_image_path: str,
-    parameter_files: str
+    *args,
 ):
     """
     Main function for learning transformation using ITK.
@@ -91,6 +91,7 @@ def learn_transform(
     ### END OF NOTE FROM ABOVE
     
     # Build parameter object:
+    parameter_files = [arg for arg in args]
     parameter_object = itk.ParameterObject.New()
     parameter_object.ReadParameterFile(parameter_files)
     
