@@ -4,7 +4,7 @@ pythonScript = "${workflow.projectDir}/bin/tiler.py"
 
 process TILING {
     publishDir "Tiled", mode: 'copy', overwrite: true
-    debug true
+    //debug true
 
     input:
     tuple val(sampleID), path(transformedImage)
