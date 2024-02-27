@@ -9,6 +9,10 @@ def read_file_contents(
     
 
 def join_coordinates(*args):
+    """
+    Function that takes 'coordinates*.csv' for the main image types 
+    and concatenates these into a single coordinates file.
+    """
     with open('coordinates.csv', 'w+') as fh:
         fh.write('fov,round,ch,zplane,xc_min,yc_min,zc_min,xc_max,yc_max,zc_max\n')
         for csv_file in args:
