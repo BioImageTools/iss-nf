@@ -5,6 +5,7 @@
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
 include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
+include { SPOT_FINDER } from './modules/decoding.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -99,7 +100,7 @@ workflow {
 
     // joined_coords_ch.collect().view()
     //joined_coords_ch.view()
-    //joined_coords_ch.view()
+    joined_coords_ch.view()
     coords4spacetx = JOIN_COORDINATES(joined_coords_ch)
     //coords4spacetx.view()
 
@@ -115,5 +116,29 @@ workflow {
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
     //grouped_input.view()
     spacetx_out = SPACETX(grouped_input)
+<<<<<<< HEAD
 */
+=======
+    // Collect all the output from SpaceTx for feeding the following parts:
+    all_spacetx_files = spacetx_out
+        .map {it ->
+            it[1]}
+        .flatten()
+    
+    //all_spacetx_files.view()
+    //print_spacetx = PRINT_SPACETX(all_spacetx_files, params.experiment_json)
+    // Join all spacetx files with codebook and experiment JSONs:
+
+    ex = Channel.fromPath(params.bothJSON)
+
+    tuple_with_all = all_spacetx_files
+        .mix(ex)
+        .toList()
+    //    .flatten()
+    //    .toList()
+
+    //tuple_with_all.view()
+    spots_detected_ch = SPOT_FINDER(tuple_with_all, params.fov)
+    spots_detected_ch.view()
+>>>>>>> origin/dev
 }
