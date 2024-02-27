@@ -43,9 +43,14 @@ workflow {
             sampleID = f.baseName
             return [sampleID[0,1], f]
          }
+         
+     // Combine the elastix parameter files
+     txt_files = Channel.fromPath("${params.elastix_parameter_files}/*.txt")
+     txt_combined = txt_files.flatten().toList()
+     //txt_combined.view()
 
     // Learn transformations and save TXT files with output:
-    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath)
+    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, txt_combined)
 
     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel

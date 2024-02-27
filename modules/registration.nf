@@ -1,5 +1,6 @@
 pythonScript = "${workflow.projectDir}/bin/registration.py"
 
+
 process LEARN_TRANSFORM {
     publishDir "Transformations", mode: 'copy', overwrite: true
     //debug true
@@ -7,6 +8,7 @@ process LEARN_TRANSFORM {
     input:
     tuple val(roundID), path(inputMovImagePath)
     path(fixImagePath)
+    path(txt_combined)
     //path(param_file)
     //tuple val(roundID), path(inputMovImagePath)
 
@@ -18,7 +20,7 @@ process LEARN_TRANSFORM {
 
     script:
     """
-    python ${pythonScript} run_learn $fixImagePath ${inputMovImagePath} ${params.elastix_parameter_files}
+    python ${pythonScript} run_learn $fixImagePath ${inputMovImagePath} $txt_combined 
     """
 }
 
