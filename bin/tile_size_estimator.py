@@ -119,6 +119,6 @@ if __name__ == "__main__":
     cli = {
         "run": estimate_tile_size
     }
-    fir.Fire(cli)
+    fire.Fire(cli)
 
 

@@ -116,7 +116,6 @@ workflow {
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch_tile)
 
-    // To do: merge 'coordinates-fov*'
     joined_coords_ch = tiled_ch[1].groupTuple()
     
     coords4spacetx = JOIN_COORDINATES(joined_coords_ch)
@@ -133,6 +132,7 @@ workflow {
     
     spacetx_out = SPACETX(grouped_input)
     // Collect all the output from SpaceTx for feeding the following parts:
+    
     all_spacetx_files = spacetx_out
         .map {it ->
             it[1]}
