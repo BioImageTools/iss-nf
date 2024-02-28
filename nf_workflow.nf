@@ -130,7 +130,9 @@ workflow {
     //grouped_tiled_images_flat.view()
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
     
-    spacetx_out = SPACETX(grouped_input)
+    spacetx_out_tuple = SPACETX(grouped_input)
+    spacetx_out_tuple[1].view()
+    spacetx_out = spacetx_out_tuple[0]
     // Collect all the output from SpaceTx for feeding the following parts:
     
     all_spacetx_files = spacetx_out
