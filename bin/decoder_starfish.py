@@ -77,7 +77,8 @@ def process_fov(
     images_dir_path,
     fov_name: str
 ):
-    exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
+    #exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
+    exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')

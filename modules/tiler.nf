@@ -7,7 +7,7 @@ process TILING {
     debug true
 
     input:
-    tuple val(sampleID), path(transformedImage)
+    tuple val(sampleID), path(transformedImage), val(tile_size)
 
     output:
     tuple val(sampleID), path("*.tiff")
@@ -15,6 +15,6 @@ process TILING {
 
     script:
     """
-    python ${pythonScript} run_tiling $transformedImage 200 ./
+    python ${pythonScript} run_tiling $transformedImage $tile_size ./
     """
 }

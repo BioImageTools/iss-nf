@@ -1,14 +1,15 @@
-// modules/tile_size_estimator.nf
-
-pythonScript = "${workflow.projectDir}/bin/tile_size_estimator.py" --image_path /path/to/image.tif
+pythonScript = "${workflow.projectDir}/bin/tile_size_estimator.py"
 
 process TILE_SIZE_ESTIMATOR {
+    input:
+    path(refImage)
 
     output:
-    path 'tile_size.txt'
+    path("*.txt")
+    path("*.json")
 
     script:
     """
-    python ${pythonScript} ${input} > tile_size.txt
+    python ${pythonScript} run ${refImage}
     """
 }

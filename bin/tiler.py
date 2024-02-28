@@ -130,7 +130,7 @@ def tile_images(image_path, tile_size, output) -> None:
 
     #if img_type != 'nuclei':
         #os.makedirs(img_type)
-    tile_coordinates = get_tile_coordinates(tile_size, image_shape)
+    tile_coordinates = get_tile_coordinates(int(tile_size), image_shape)
     
     coordinates = tile_image(image, image_name, tile_size, img_type, output,
                                 tile_coordinates)
