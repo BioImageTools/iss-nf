@@ -113,11 +113,10 @@ def process_fov(
     spots4postcode = build_spot_traces_exact_match(spots)
     
     np.save('spot_traces.npy', spots4postcode)
-    # Serialize the object
-    #with open('data.pickle', 'wb') as file: 
-    #    pickle.dump(spots, file)
-
-    #return spots#decoded, spots, fov_name
+    # Do starfish decoding already in here:
+    decoded = decode(spots, exp)
+    decoded.to_features_dataframe().to_csv(f'starfish_results.csv', index=False)
+    
     
 def read_fov(
     spots_pickle

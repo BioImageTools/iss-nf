@@ -9,6 +9,7 @@ process SPOT_FINDER {
 
     output:
     tuple val(fov_id), path("*.npy")
+    tuple val(fov_id), path ("*.csv")
 
     script:
     """

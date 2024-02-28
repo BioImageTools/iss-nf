@@ -8,6 +8,7 @@ process SPACETX {
 
     output:
     tuple val(imageType), path("${imageType}*")
+    tuple val(imageType), path("${imageType}.json")
 
     script:
     """
