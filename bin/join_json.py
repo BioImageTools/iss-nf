@@ -1,34 +1,33 @@
 import json
-import os
+import fire
 
 
-#json_files = [path1, path2, path3] 
-
-def merge_json(*args):
+def join_json(*args):
     
-    images_combined = {}
+    file_paths = args
+    json_data = {
+        "version": "5.0.0",
+        "images": {
+            "primary": file_paths[3],
+            "anchor_dots": file_paths[2],
+            "anchor_nuclei": file_paths[0],
+            "nuclei": file_paths[1]
+        },
+        "extras": {},
+        "codebook": "codebook.json"
+    }
 
-    for file_path in args:
-        with open(file_path, 'r') as file:
-            data = json.load(file)
-
-        images_combined.update(data['images'])
-
-    first_file_path = json_files[0]
-
-    with open(first_file_path, 'r') as file:
-        data = json.load(file)
-
-    data['images'] = images_combined
-
-    with open(first_file_path, 'w') as file:
-        json.dump(data, file, indent=4)
+    with open('experiment.json', 'w') as outfile:
+        json.dump(json_data, outfile, indent=4)
 
    
 if __name__ == "__main__":
     
     cli = {
-        "merge_json": merge_json
+        "merge_json": join_json
     }
     
     fire.Fire(cli)
+    
+    
+    

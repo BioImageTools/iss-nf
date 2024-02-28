@@ -179,11 +179,11 @@ def auto_threshold(tiles_path, json_path, n_tilePicker=50, min_thr=.0005, max_th
 
     return mode_first(arr)
                     
-                    
+
+    
 if __name__ == "__main__":
-  
-    tiles_path = '/path/to/Tiled/anchor_nuclei/'
-    json_path = '/path/to/SpaceTx/primary/experiment.json'
-
-    auto_threshold(tiles_path, json_path, n_tilePicker=40, min_thr=0.008, max_thr=0.01, n_vals=10)
-
+    
+    cli = {
+        "run_threshold": auto_threshold,
+    }
+    fire.Fire(cli)
