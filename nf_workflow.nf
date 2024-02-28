@@ -4,6 +4,7 @@ nextflow.enable.dsl=2
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
 include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
+include { JOIN_JSON } from './modules/join_json.nf'
 include { SPOT_FINDER } from './modules/decoding.nf'
 
 def filter_channel(image_id) {
@@ -123,11 +124,18 @@ workflow {
         .map {it ->
             it[1]}
         .flatten()
-    
     //all_spacetx_files.view()
-    //print_spacetx = PRINT_SPACETX(all_spacetx_files, params.experiment_json)
-    // Join all spacetx files with codebook and experiment JSONs:
 
+    all_spacetx_json = spacetx_out
+        .map {it ->
+            it[2]}
+        .toList()     
+    //all_spacetx_json.view()
+    
+    // Merge json files
+    merge_json = JOIN_JSON(all_spacetx_json)
+    merge_json.view()
+    
     /*
     ex = Channel.fromPath(params.bothJSON)
 

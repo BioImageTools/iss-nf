@@ -3,13 +3,13 @@ pythonScript = "${workflow.projectDir}/bin/join_json.py"
 process JOIN_JSON {
 
     input:
-    tuple path('*')
+    path(all_spacetx_json)
 
     output:
-    tuple path("experiment.json")
+    path("experiment.json")
 
     script:
     """
-    python ${pythonScript} merge_json ${path}
+    python ${pythonScript} merge_json ${all_spacetx_json}
     """
    }
