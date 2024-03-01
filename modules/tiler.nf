@@ -1,10 +1,9 @@
-// params.imageDir = '/path/to/images'
-params.outputDir = '/scratch/segonzal/TiledOutput'
 pythonScript = "${workflow.projectDir}/bin/tiler.py"
 
 process TILING {
     publishDir "Tiled", mode: 'copy', overwrite: true
     debug true
+    label 'small'
 
     input:
     tuple val(sampleID), path(transformedImage), val(tile_size)
@@ -15,6 +14,6 @@ process TILING {
 
     script:
     """
-    python ${pythonScript} run_tiling $transformedImage $tile_size ./
+    python ${pythonScript} run_tiling $transformedImage $tile_size
     """
 }

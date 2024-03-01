@@ -2,6 +2,7 @@ import fire
 import pickle
 import os
 import numpy as np
+from registration import *
 from starfish.spots import DecodeSpots
 from starfish.core.imagestack.imagestack import ImageStack
 from starfish.types import Axes, FunctionSource
@@ -38,7 +39,7 @@ def find_spots(
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,
-                threshold=0.08,
+                threshold=0.5,
                 is_volume=False,
                 measurement_type='mean')
     dots_max = reference_stack.reduce((Axes.ROUND, Axes.ZPLANE),
@@ -111,22 +112,15 @@ def process_fov(
     #decoded = decode(spots, exp)
     
     spots4postcode = build_spot_traces_exact_match(spots)
-    
-    np.save('spot_traces.npy', spots4postcode)
+    #print(f"{fov_name}"*10)
+    np.save(f'{fov_name}.npy', spots4postcode)
     # Do starfish decoding already in here:
     decoded = decode(spots, exp)
-    decoded.to_features_dataframe().to_csv(f'starfish_results.csv', index=False)
-    
-    
-def read_fov(
-    spots_pickle
-):
-    with open(spots_pickle, 'rb') as f:
-        fov_results = pickle.load(f)
+    decoded.to_features_dataframe().to_csv(f'{fov_name}-starfish_results.csv', index=False)
+
 
 if __name__ == "__main__":
     cli = {
-        "decode_fov": process_fov,
-        "read_fov": read_fov
+        "decode_fov": process_fov
     }
     fire.Fire(cli)

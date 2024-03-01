@@ -7,6 +7,7 @@ process TILE_SIZE_ESTIMATOR {
     output:
     path("*.txt")
     path("*.json")
+    path("coordinates*.csv")
 
     script:
     """

@@ -7,6 +7,7 @@ include { TILE_SIZE_ESTIMATOR } from './modules/tile_size_estimator.nf'
 include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
 include { SPOT_FINDER } from './modules/decoding.nf'
+include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -23,6 +24,7 @@ def filter_channel(image_id) {
 process JOIN_COORDINATES {
     //publishDir "JoinedCoords", mode: "copy", overwrite: true
     debug true
+    label 'small'
 
     input:
     tuple val(image_type), path(x)
@@ -56,6 +58,9 @@ workflow {
 
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
+
+    // To use later for the DECODING_POSTCODE process:
+    coordinates_csv = tile_metadata_ch[2]
 
     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
@@ -109,7 +114,7 @@ workflow {
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
     
     spacetx_out_tuple = SPACETX(grouped_input)
-    spacetx_out_tuple[1].view()
+    //spacetx_out_tuple[1].view()
     spacetx_out = spacetx_out_tuple[0]
     // Collect all the output from SpaceTx for feeding the following parts:
     
@@ -126,5 +131,14 @@ workflow {
         .toList()
 
     spots_detected_ch = SPOT_FINDER(tuple_with_all, total_fovs_ch)
-    spots_detected_ch[1].view()
+    //spots_detected_ch[1].view()
+    sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
+    
+    sorted_starfish_tables = spots_detected_ch[1].toSortedList()
+    //sorted_starfish_tables.view()
+    
+    postcode_results = POSTCODE_DECODER(
+        Channel.fromPath(params.CodeJSON),
+        sorted_detected_spots_ch
+    )
 }

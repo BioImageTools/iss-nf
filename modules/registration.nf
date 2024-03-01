@@ -1,8 +1,8 @@
 pythonScript = "${workflow.projectDir}/bin/registration.py"
 
 process LEARN_TRANSFORM {
-    publishDir "Transformations", mode: 'copy', overwrite: true
-    debug true
+    //publishDir "Transformations", mode: 'copy', overwrite: true
+    //debug true
 
     input:
     tuple val(roundID), path(inputMovImagePath)

@@ -1,6 +1,7 @@
 import tifffile as tif
 import fire
 import json
+from tiler import *
 
 
 def plot_tile_grid(image, tileSize):
@@ -70,7 +71,7 @@ def estimate_tile_size(image_path: str, verbose=False):
     
     # Will need to remove this (used for the test dataset)
     if image_shape[0] < 800:
-        selected_tileSize = 200
+        selected_tileSize = 256
 
     if verbose:
         plot_tile_grid(img, selected_tileSize)
@@ -91,6 +92,9 @@ def estimate_tile_size(image_path: str, verbose=False):
         for f in range(total_fovs):
             #print(write_fov_name(f))
             fh.writelines(write_fov_name(f)+'\n')
+    
+    
+    tile_images(image_path, selected_tileSize)
 
 if __name__ == "__main__":
     cli = {

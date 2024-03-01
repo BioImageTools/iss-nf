@@ -71,7 +71,7 @@ def get_tile_coordinates(tile_size: int, image_shape) -> None:
     return tile_coordinates
 
 
-def tile_image(image, image_name, tile_size, img_type, output_dir,
+def tile_image(image, image_name, tile_size, img_type,
               tile_coordinates):
 
     coordinates = []
@@ -88,8 +88,7 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
             if img_type in ['primary'] else 0
 
         file_name = f'{img_type}-f{tile_id}-r{r}-c{c}-z0.tiff'
-        #tiff.imsave(os.path.join(output_dir, file_name), tile) Original Nima
-        tiff.imsave(os.path.join(output_dir, file_name), tile)
+        tiff.imsave(file_name, tile)
         
         coordinates.append([
             tile_id, r, c, 0,
@@ -98,7 +97,7 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
 
     write_coords_file(
 	    coordinates,
-            os.path.join(output_dir, f'coordinates-r{r}-c{c}-z0.csv')) 
+            f'coordinates-r{r}-c{c}-z0.csv')
 
     return coordinates
 
@@ -110,7 +109,7 @@ def write_coords_file(coordinates, file_path) -> None:
                  'xc_max', 'yc_max', 'zc_max'))
     coords_df.to_csv(file_path, index=False)
 
-def tile_images(image_path, tile_size, output) -> None:
+def tile_images(image_path, tile_size) -> None:
     
     image = tiff.memmap(image_path)
     image_shape = image.shape
@@ -124,18 +123,15 @@ def tile_images(image_path, tile_size, output) -> None:
         img_type = 'anchor_nuclei'
     else:
         img_type = 'primary'
-        
-    
-    #output = os.path.join(output, img_type)
 
     #if img_type != 'nuclei':
         #os.makedirs(img_type)
     tile_coordinates = get_tile_coordinates(int(tile_size), image_shape)
     
-    coordinates = tile_image(image, image_name, tile_size, img_type, output,
+    coordinates = tile_image(image, image_name, tile_size, img_type,
                                 tile_coordinates)
-            
-        
+
+
 if __name__ == "__main__":
     cli = {
         "run_tiling": tile_images

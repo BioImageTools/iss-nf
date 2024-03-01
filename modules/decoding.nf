@@ -8,8 +8,8 @@ process SPOT_FINDER {
     //file coordinates from params.imageDir
 
     output:
-    tuple val(fov_id), path("*.npy")
-    tuple val(fov_id), path ("*.csv")
+    path("*.npy")
+    path ("*.csv")
 
     script:
     """
