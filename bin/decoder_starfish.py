@@ -2,6 +2,7 @@ import fire
 import pickle
 import os
 import numpy as np
+from registration import *
 from starfish.spots import DecodeSpots
 from starfish.core.imagestack.imagestack import ImageStack
 from starfish.types import Axes, FunctionSource
@@ -31,14 +32,15 @@ def register(
 
 def find_spots(
     image_stack: ImageStack, 
-    reference_stack: ImageStack
+    reference_stack: ImageStack,
+    threshold,
 ) -> SpotFindingResults:
     """Detect spots using laplacian of gaussians approach."""
     bd = FindSpots.BlobDetector(
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,
-                threshold=0.08,
+                threshold=threshold,
                 is_volume=False,
                 measurement_type='mean')
     dots_max = reference_stack.reduce((Axes.ROUND, Axes.ZPLANE),
@@ -75,9 +77,11 @@ def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTab
 
 def process_fov(
     images_dir_path,
-    fov_name: str
+    fov_name: str,
+    threshold=0.003,
 ):
-    exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
+    #exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
+    exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')
@@ -105,28 +109,20 @@ def process_fov(
     filtered_imgs = primary#_registered
 
     spots = find_spots(image_stack=filtered_imgs,
-                       reference_stack=filtered_ref)
+                       reference_stack=filtered_ref, threshold)
 
     #decoded = decode(spots, exp)
     
     spots4postcode = build_spot_traces_exact_match(spots)
-    
-    np.save('spot_traces.npy', spots4postcode)
-    # Serialize the object
-    #with open('data.pickle', 'wb') as file: 
-    #    pickle.dump(spots, file)
+    #print(f"{fov_name}"*10)
+    np.save(f'{fov_name}.npy', spots4postcode)
+    # Do starfish decoding already in here:
+    decoded = decode(spots, exp)
+    decoded.to_features_dataframe().to_csv(f'{fov_name}-starfish_results.csv', index=False)
 
-    #return spots#decoded, spots, fov_name
-    
-def read_fov(
-    spots_pickle
-):
-    with open(spots_pickle, 'rb') as f:
-        fov_results = pickle.load(f)
 
 if __name__ == "__main__":
     cli = {
-        "decode_fov": process_fov,
-        "read_fov": read_fov
+        "decode_fov": process_fov
     }
     fire.Fire(cli)

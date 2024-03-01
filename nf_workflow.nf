@@ -6,6 +6,8 @@ include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
 include { JOIN_JSON } from './modules/join_json.nf'
 include { SPOT_FINDER } from './modules/decoding.nf'
+include { TILE_PICKER } from './modules/tile_picker.nf'
+include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -136,17 +138,36 @@ workflow {
     merge_json = JOIN_JSON(all_spacetx_json)
     merge_json.view()
     
-    /*
-    ex = Channel.fromPath(params.bothJSON)
-
+    // Tile Picker
+    tile = TILE_PICKER(tuple_with_all)
+    
+    // Auto Threshold finder
+    thresholds = tile
+    .map {it ->
+        it[1]}
+    .toList()  
+    picked_tile = tile[0]
+   
+   //SPOT_FINDER ...
     tuple_with_all = all_spacetx_files
-        .mix(ex)
-        .toList()
-    //    .flatten()
-    //    .toList()
-
-    //tuple_with_all.view()
-    spots_detected_ch = SPOT_FINDER(tuple_with_all, params.fov)
-    spots_detected_ch.view()
-    */
+    .mix(ex)
+    .toList()
+    spots_detected_ch = SPOT_FINDER(tuple_with_all, picked_tile, thresholds)
+    sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
+    
+    sorted_starfish_tables = spots_detected_ch[1].toSortedList()
+    //sorted_starfish_tables.view()
+    picked_threshold = THRESHOLD_FINDER(thresholds, sorted_starfish_tables)
+    
+    spots_detected_ch = SPOT_FINDER(tuple_with_all, total_fovs_ch, picked_threshold)
+    //spots_detected_ch[1].view()
+    sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
+    
+    sorted_starfish_tables = spots_detected_ch[1].toSortedList()
+    //sorted_starfish_tables.view()
+    
+    postcode_results = POSTCODE_DECODER(
+        Channel.fromPath(params.CodeJSON),
+        sorted_detected_spots_ch
+    )
 }

@@ -1,6 +1,13 @@
 from starfish.spots import FindSpots
 from starfish import FieldOfView, Experiment
+from starfish.core.imagestack.imagestack import ImageStack
 from starfish.types import Axes, FunctionSource
+from starfish.core.spots.DecodeSpots.trace_builders import build_spot_traces_exact_match
+from starfish.spots import DecodeSpots
+from starfish.core.types import SpotFindingResults
+from starfish.core.intensity_table.decoded_intensity_table import DecodedIntensityTable
+
+import numpy as np
 
 
 def find_spots( json_path,
@@ -11,8 +18,9 @@ def find_spots( json_path,
                 max_sigma=2,
                 num_sigma=30,
                 threshold=.003,
-                measurement_type='mean'
-):
+                measurement_type='mean',
+                decodingByStarfish=False,
+)-> ImageStack:
     
     final_spots = {}
     exp = Experiment.from_json(json_path)
@@ -44,9 +52,39 @@ def find_spots( json_path,
 
         final_spots[fov_name] = spots
         
-    return final_spots
+        all_spots = []
+
+        for fov_name, spot in final_spots.items():
+            data_to_trace = build_spot_traces_exact_match(spot)
+            all_spots.append([fov_name, np.swapaxes(data_to_trace.data, 1, 2)])
+
+        all_spots = list(sorted(all_spots, key=lambda x:x[0]))
+        all_spots = [all_spots[i][1] for i in range(len(all_spots))]
+        all_spots = np.concatenate(all_spots, axis=0)
+        
+    
+    if decodingByStarfish:
+        results = decode_starfish(final_spots, json_path)
+        return results[fov_name].to_features_dataframe().to_csv(f'{fov_name}.csv', index=False)
+    else:
+        return all_spots
+
+def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTable:
+
+    exp = Experiment.from_json(json_path)
+    codebook = exp.codebook
+    decoder = DecodeSpots.PerRoundMaxChannel(
+        codebook=codebook,
+    )
+    decoded_spots = {}
+    for fov_name, spot in spots.items():
+        decoded = decoder.run(spots=spot)
+        decoded_spots[fov_name] = decoded
+
+    return decoded_spots
+
 
 if __name__ == "__main__":
     
-    json_path = '/path/to/SpaceTx/primary/experiment.json'
-    find_spots(json_path, test_tile_idx=[9])
+    json_path = '/hpc/scratch/hdd1/nv066607/ISS_tmp/ISS_471_NSCLC253_BL2/SpaceTx/primary/experiment.json'
+    results = find_spots(json_path, test_tile_idx=[200], threshold=.001, decodingByStarfish=False)
