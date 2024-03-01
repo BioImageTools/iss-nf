@@ -41,12 +41,10 @@ def postcode_decoder(
     spots_s = list(sorted(spots_s, key=lambda x:x[0]))
     spots_s = [spots_s[i][1] for i in range(len(spots_s))]
     spots_s = np.concatenate(spots_s, axis=0)
-
     #experiment = Experiment.from_json(json_path)
     codebook = Codebook()
     codebook = codebook.open_json(codebook_json)
     barcodes_01 = np.swapaxes(np.array(codebook), 1, 2)
-
     try:
         out = post_decfunc.decoding_function(
             spots_s, barcodes_01, print_training_progress=False)

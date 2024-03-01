@@ -112,6 +112,9 @@ def estimate_tile_size(image_path: str):
     with open('total_fovs.txt', "w+") as fh:
         for f in range(total_fovs):
             fh.writelines(write_fov_name(f)+'\n')
+    
+    
+    tile_images(image_path, selected_tileSize)
 
     return str(selected_tileSize)
 
