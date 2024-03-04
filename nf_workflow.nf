@@ -136,18 +136,25 @@ workflow {
     
     // Merge json files
     merge_json = JOIN_JSON(all_spacetx_json)
-    merge_json.view()
+    //merge_json.view()
     
     // Tile Picker
-    tile = TILE_PICKER(tuple_with_all)
+    all_tilePicker = TILE_PICKER(all_spacetx_files)
     
     // Auto Threshold finder
-    thresholds = tile
+    thresholds = all_tilePicker
     .map {it ->
         it[1]}
     .toList()  
-    picked_tile = tile[0]
-   
+    thresholds.view()
+    
+    picked_tile = all_tilePicker
+    .map {it ->
+        it[0]}
+    .toList()  
+    picked_tile.view()
+    
+   /*
    //SPOT_FINDER ...
     tuple_with_all = all_spacetx_files
     .mix(ex)
@@ -170,4 +177,5 @@ workflow {
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
     )
+    */
 }
