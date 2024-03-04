@@ -6,8 +6,8 @@ process TILE_PICKER {
     path('*')
 
     output:
-    tuple val(tile), val(thresholds)
-    
+    tuple val('picked_tile.txt'), val('thresholds.txt')
+        
     script:
     """
     python ${pythonScript} tile_picker ./

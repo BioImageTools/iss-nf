@@ -14,7 +14,8 @@ def join_json(*args):
             "nuclei": file_paths[1]
         },
         "extras": {},
-        "codebook": "codebook.json"
+        "codebook": "/home/nv066607/python_github_enterprise/migratedVersion/issdecoder/codebook_TMEv3_with_Ig.json"
+        #"codebook": "codebook.json"
     }
 
     with open('experiment.json', 'w') as outfile:
