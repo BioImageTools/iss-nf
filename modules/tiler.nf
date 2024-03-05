@@ -1,12 +1,12 @@
 pythonScript = "${workflow.projectDir}/bin/tiler.py"
 
 process TILING {
-    publishDir "Tiled", mode: 'copy', overwrite: true
-    debug true
-    label 'small'
+    //publishDir "Tiled", mode: 'copy', overwrite: true
+    //debug true
+    label 'infinitesimal'
 
     input:
-    tuple val(sampleID), path(transformedImage), val(tile_size)
+    tuple val(sampleID), path(transformedImage), val(tile_size), path(experiment_metadata_json)
 
     output:
     tuple val(sampleID), path("*.tiff")
@@ -14,6 +14,6 @@ process TILING {
 
     script:
     """
-    python ${pythonScript} run_tiling $transformedImage $tile_size
+    python ${pythonScript} run_tiling $transformedImage $tile_size $experiment_metadata_json
     """
 }

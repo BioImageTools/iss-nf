@@ -3,6 +3,7 @@
 //params.inputMovImagesLearnPath = "/scratch/segonzal/Sergio/Matias/Stitched/r{2,3,4}_DAPI.tif"
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
+include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
 include { TILE_SIZE_ESTIMATOR } from './modules/tile_size_estimator.nf'
 include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
@@ -24,7 +25,7 @@ def filter_channel(image_id) {
 process JOIN_COORDINATES {
     //publishDir "JoinedCoords", mode: "copy", overwrite: true
     debug true
-    label 'small'
+    label 'infinitesimal'
 
     input:
     tuple val(image_type), path(x)
@@ -95,7 +96,9 @@ workflow {
     // Add tile size as third argument for the input:
     redefined_merged_ch_tile = redefined_merged_ch
         .combine(size_ch)
-
+        .combine(Channel.fromPath(params.ExpMetaJSON))
+    //redefined_merged_ch_tile.view()
+    
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch_tile)
 
@@ -124,10 +127,13 @@ workflow {
         .flatten()
 
     // Join all spacetx files with codebook and experiment JSONs:
-    ex = Channel.fromPath(params.bothJSON)
+    exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
+
+    exp_plus_codebook = Channel.fromPath(params.CodeJSON)
+        .mix(exp_json_ch)
 
     tuple_with_all = all_spacetx_files
-        .mix(ex)
+        .mix(exp_plus_codebook)
         .toList()
 
     spots_detected_ch = SPOT_FINDER(tuple_with_all, total_fovs_ch)
@@ -138,6 +144,7 @@ workflow {
     //sorted_starfish_tables.view()
     
     postcode_results = POSTCODE_DECODER(
+        Channel.fromPath(params.ExpMetaJson),
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
     )

@@ -30,7 +30,7 @@ def write_fov_name(
     else:
         return f"fov_{fov_idx}"
     
-def estimate_tile_size(image_path: str, verbose=False):
+def estimate_tile_size(image_path: str):
 
     img = tif.memmap(image_path)
     image_shape = img.shape
@@ -73,8 +73,8 @@ def estimate_tile_size(image_path: str, verbose=False):
     if image_shape[0] < 800:
         selected_tileSize = 256
 
-    if verbose:
-        plot_tile_grid(img, selected_tileSize)
+    #if verbose:
+    #    plot_tile_grid(img, selected_tileSize)
         
     # Save tile size in JSON
     tile_size_dict = [str(selected_tileSize)]
@@ -94,7 +94,7 @@ def estimate_tile_size(image_path: str, verbose=False):
             fh.writelines(write_fov_name(f)+'\n')
     
     
-    tile_images(image_path, selected_tileSize)
+    #tile_images(image_path, selected_tileSize)
 
 if __name__ == "__main__":
     cli = {
