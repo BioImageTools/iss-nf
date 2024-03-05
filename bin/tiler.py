@@ -120,7 +120,6 @@ def write_coords_file(coordinates, file_path) -> None:
     coords_df.to_csv(file_path, index=False)
 
 def tile_images(image_path, tile_size, exp_metadata) -> None:
-
     ch_map = get_ch_map(exp_metadata)
     
     image = tiff.memmap(image_path)

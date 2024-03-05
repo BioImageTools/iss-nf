@@ -112,7 +112,6 @@ workflow {
     redefined_merged_ch_tile = redefined_merged_ch
         .combine(size_ch)
         .combine(Channel.fromPath(params.ExpMetaJSON))
-
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch_tile)
 

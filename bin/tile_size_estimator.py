@@ -114,7 +114,7 @@ def estimate_tile_size(image_path: str):
             fh.writelines(write_fov_name(f)+'\n')
     
     
-    tile_images(image_path, selected_tileSize)
+    #tile_images(image_path, selected_tileSize)
 
     return str(selected_tileSize)
 
