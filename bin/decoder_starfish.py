@@ -39,7 +39,7 @@ def find_spots(
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,
-                threshold=0.5,
+                threshold=0.003,
                 is_volume=False,
                 measurement_type='mean')
     dots_max = reference_stack.reduce((Axes.ROUND, Axes.ZPLANE),

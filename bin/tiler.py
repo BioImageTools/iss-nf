@@ -1,8 +1,10 @@
 import os
 import fire
 import csv
+import json
 from collections import namedtuple
 from typing import Union
+import exp_metadata_json as exp_meta
 
 import numpy as np
 import tifffile as tiff
@@ -12,7 +14,15 @@ import matplotlib.patches as patches
 from skimage.transform import resize, rescale
 
 # For future changes:
-ch_map = {'ch0': 0, 'ch1': 1, 'ch2': 2, 'ch3': 3}
+def get_ch_map(
+    experiment_metadata_json
+):
+    ExpJsonParser = exp_meta.ExpJsonParser(experiment_metadata_json)
+    try:
+        return ExpJsonParser.meta['primary_metadata']["channel_dict"]
+        
+    except:
+        print("Experiment metadata file not properly formatted")
 
 # Couple of missing things:
 # 'coordinates.csv' missing 'fov' name and also for additional rounds/channels
@@ -41,7 +51,7 @@ def get_round_id(name):
     r = int(name.split('_')[1][-1])
     return r
 
-def get_ch_id(name):
+def get_ch_id(name, ch_map):
     # Note! Maybe this should come from some JSON with experiment metadata!
     return [ch_map[flcr] for flcr in ch_map if flcr in name][0]
 
@@ -72,7 +82,7 @@ def get_tile_coordinates(tile_size: int, image_shape) -> None:
 
 
 def tile_image(image, image_name, tile_size, img_type,
-              tile_coordinates):
+              tile_coordinates, channel_map):
 
     coordinates = []
     for tile_id in tile_coordinates:
@@ -84,7 +94,7 @@ def tile_image(image, image_name, tile_size, img_type,
         r = 0 if 'anchor' in img_type \
             else get_round_id(image_name)
 
-        c = get_ch_id(image_name) \
+        c = get_ch_id(image_name, channel_map) \
             if img_type in ['primary'] else 0
 
         file_name = f'{img_type}-f{tile_id}-r{r}-c{c}-z0.tiff'
@@ -109,7 +119,8 @@ def write_coords_file(coordinates, file_path) -> None:
                  'xc_max', 'yc_max', 'zc_max'))
     coords_df.to_csv(file_path, index=False)
 
-def tile_images(image_path, tile_size) -> None:
+def tile_images(image_path, tile_size, exp_metadata) -> None:
+    ch_map = get_ch_map(exp_metadata)
     
     image = tiff.memmap(image_path)
     image_shape = image.shape
@@ -129,7 +140,7 @@ def tile_images(image_path, tile_size) -> None:
     tile_coordinates = get_tile_coordinates(int(tile_size), image_shape)
     
     coordinates = tile_image(image, image_name, tile_size, img_type,
-                                tile_coordinates)
+                                tile_coordinates, ch_map)
 
 
 if __name__ == "__main__":

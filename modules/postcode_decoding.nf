@@ -2,6 +2,7 @@ pythonScript = "${workflow.projectDir}/bin/postcode_decoder.py"
 
 process POSTCODE_DECODER {
     input:
+    path(exp_meta_json)
     path(codebook_json)
     path(starfish_output_files)
     //file coordinates from params.imageDir
@@ -13,6 +14,6 @@ process POSTCODE_DECODER {
 
     script:
     """
-    python ${pythonScript} run $codebook_json $starfish_output_files
+    python ${pythonScript} run $exp_meta_json $codebook_json $starfish_output_files
     """
    }

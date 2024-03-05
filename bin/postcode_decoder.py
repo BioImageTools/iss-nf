@@ -3,14 +3,20 @@
 import numpy as np
 import os
 import fire
+import exp_metadata_json as exp_meta
 from starfish import Codebook
 import postcode.decoding_functions as post_decfunc
 
 
 def postcode_decoder(
+    exp_metadata_json,
     codebook_json,
     *args
 ):
+    # Parse metadata to get genes and variables used for the results' output
+    ExpJsonParser = exp_meta.ExpJsonParser(exp_metadata_json)
+    # try maybe with GSK data? -> PoSTcode failing with sample dataset
+    
     #Get ordered list:
     totals_fovs = len(args)
     fovs = [os.path.basename(arg).split('.')[0] for arg in args]
