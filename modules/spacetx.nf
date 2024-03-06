@@ -7,7 +7,7 @@ process SPACETX {
     //file coordinates from params.imageDir
 
     output:
-    tuple val(imageType), path("${imageType}*"), path("${imageType}.json")
+    tuple val(imageType), path("${imageType}*"), path("${imageType}*.tiff")
 
     script:
     """

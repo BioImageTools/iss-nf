@@ -8,6 +8,8 @@ include { JOIN_JSON } from './modules/join_json.nf'
 include { SPOT_FINDER } from './modules/decoding.nf'
 include { TILE_PICKER } from './modules/tile_picker.nf'
 include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
+include { TILE_INTENSITY } from './modules/tile_intensity.nf'
+
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -128,19 +130,62 @@ workflow {
         .flatten()
     //all_spacetx_files.view()
 
-    all_spacetx_json = spacetx_out
+    all_spacetx_tiff = spacetx_out
         .map {it ->
             it[2]}
-        .toList()     
-    //all_spacetx_json.view()
+        //.collect()
+        .flatten()
+    //all_spacetx_tiff.view()
+
+    
+    all_spacetx_anchorDots = all_spacetx_tiff
+        //.filter (~/^anchor_dots-fov.*/ )
+        //.flatten()
+        //.filter { file ->
+        //file.contains("anchor_dots-fov")
+        //}
+        .filter { file -> file =~ /anchor_dots/ }
+        .flatten()
+        //.groupTuple()
+    //all_spacetx_anchorDots.view()
+    
     
     // Merge json files
-    merge_json = JOIN_JSON(all_spacetx_json)
+    //merge_json = JOIN_JSON(all_spacetx_json)
     //merge_json.view()
     
     // Tile Picker
-    all_tilePicker = TILE_PICKER(all_spacetx_files)
+    rnd_tiles = all_spacetx_anchorDots.randomSample(5)
+    //rnd_fov = rnd_tiles
+    //    .filter { file ->
+    //    def match = file =~ /anchor_dots-fov_([0-9]+)-/
+    //    if (match) {
+    //        return match[0][1]
+    //    }
+    //    return null
+    //}.collect().first()
+    //println rnd_fov
+
+    intensities = TILE_INTENSITY(rnd_tiles)
+    //intensities.view()
     
+    max_intensity = intensities.map { file ->
+        script:
+        """
+        content = cat ${file}
+        number = content.toInteger()
+        println number
+        """
+        }
+    max_intensity.view()
+    
+                    //.max {  }
+    //max_intensity.view()
+    
+    
+    //all_tilePicker = TILE_PICKER(all_spacetx_anchorDots)
+    
+    /*   
     // Auto Threshold finder
     thresholds = all_tilePicker
     .map {it ->
@@ -154,8 +199,8 @@ workflow {
     .toList()  
     picked_tile.view()
     
-   /*
-   //SPOT_FINDER ...
+
+    //SPOT_FINDER ...
     tuple_with_all = all_spacetx_files
     .mix(ex)
     .toList()

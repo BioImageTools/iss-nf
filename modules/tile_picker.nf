@@ -1,9 +1,9 @@
-pythonScript = "${workflow.projectDir}/bin/tile_picker.py"
+pythonScript = "${workflow.projectDir}/bin/tile_picker2.py"
 
 process TILE_PICKER {
 
     input:
-    path('*')
+    path("*")
 
     output:
     tuple val('picked_tile.txt'), val('thresholds.txt')
