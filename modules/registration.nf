@@ -3,7 +3,7 @@ pythonScript = "${workflow.projectDir}/bin/registration.py"
 process LEARN_TRANSFORM {
     //publishDir "Transformations", mode: 'copy', overwrite: true
     //debug true
-    label 'small'
+    label 'registration'
 
     input:
     tuple val(roundID), path(inputMovImagePath)
@@ -26,7 +26,7 @@ process LEARN_TRANSFORM {
 process APPLY_TRANSFORM {
     //publishDir "Registered", mode: 'copy', overwrite: true
     //debug true
-    label 'small'
+    label 'registration'
 
     input:
     tuple val(roundID), path(transformPath), path(movingImagePath)
@@ -43,7 +43,7 @@ process APPLY_TRANSFORM {
 process NORMALIZE {
     //publishDir "Normalized", mode: 'copy', overwrite: true
     //debug true
-    label 'minimal'
+    label 'registration'
 
     input:
     tuple val(sampleID), path(imagePath)

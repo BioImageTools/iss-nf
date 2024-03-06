@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
-
-//params.inputMovImagesLearnPath = "/scratch/segonzal/Sergio/Matias/Stitched/r{2,3,4}_DAPI.tif"
+nextflow.enable.dsl=2
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
 include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
@@ -52,10 +51,12 @@ workflow {
     // Learn transformations and save TXT files with output:
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath)
 
+    //RM LOWER
+    /*
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
     size_ch = tile_metadata_ch[1]
-        .splitJson()
+        .splitText()
 
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
@@ -148,4 +149,6 @@ workflow {
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
     )
+    */
+    //RM UPPER
 }

@@ -7,8 +7,9 @@ process TILE_SIZE_ESTIMATOR {
     path(refImage)
 
     output:
-    path("*.txt")
-    path("*.json")
+    //path("*.txt")
+    val("total_fovs.txt")
+    path("tile_size.txt")
 
     script:
     """
