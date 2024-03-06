@@ -4,12 +4,13 @@ process TILE_PICKER {
 
     input:
     path("*")
+    val(n_tilePicker)
 
     output:
-    tuple val('picked_tile.txt'), val('thresholds.txt')
+    path('*.txt')
         
     script:
     """
-    python ${pythonScript} tile_picker ./
+    python ${pythonScript} tile_picker ./ $n_tilePicker
     """
    }
