@@ -78,10 +78,9 @@ def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTab
 def process_fov(
     images_dir_path,
     fov_name: str,
-    threshold=0.003,
+    threshold,
 ):
-    print('ddddddddddddddd', threshold, fov_name)
-    #exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
+    print('sssssssssssssss', fov_name, threshold)
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
@@ -107,9 +106,7 @@ def process_fov(
     #                        )
 
     filtered_ref = reference
-    print('ssssssssssssssssss', filtered_ref.shape)
     filtered_imgs = primary#_registered
-    print('eeeeeeeeeeeeeeeee', filtered_imgs.shape)
 
     spots = find_spots(image_stack=filtered_imgs,
                        reference_stack=filtered_ref, thresh=threshold)
@@ -121,7 +118,7 @@ def process_fov(
     np.save(f'{fov_name}.npy', spots4postcode)
     # Do starfish decoding already in here:
     decoded = decode(spots, exp)
-    decoded.to_features_dataframe().to_csv(f'{fov_name}-starfish_results.csv', index=False)
+    decoded.to_features_dataframe().to_csv(f'{fov_name}-starfish_results-{threshold}.csv', index=False)
 
 
 if __name__ == "__main__":
