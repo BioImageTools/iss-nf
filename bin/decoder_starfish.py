@@ -33,14 +33,14 @@ def register(
 def find_spots(
     image_stack: ImageStack, 
     reference_stack: ImageStack,
-    threshold,
+    thresh,
 ) -> SpotFindingResults:
     """Detect spots using laplacian of gaussians approach."""
     bd = FindSpots.BlobDetector(
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,
-                threshold=threshold,
+                threshold=thresh,
                 is_volume=False,
                 measurement_type='mean')
     dots_max = reference_stack.reduce((Axes.ROUND, Axes.ZPLANE),
@@ -80,6 +80,7 @@ def process_fov(
     fov_name: str,
     threshold=0.003,
 ):
+    print('ddddddddddddddd', threshold, fov_name)
     #exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
@@ -106,10 +107,12 @@ def process_fov(
     #                        )
 
     filtered_ref = reference
+    print('ssssssssssssssssss', filtered_ref.shape)
     filtered_imgs = primary#_registered
+    print('eeeeeeeeeeeeeeeee', filtered_imgs.shape)
 
     spots = find_spots(image_stack=filtered_imgs,
-                       reference_stack=filtered_ref, threshold)
+                       reference_stack=filtered_ref, thresh=threshold)
 
     #decoded = decode(spots, exp)
     

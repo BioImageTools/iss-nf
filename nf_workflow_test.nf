@@ -150,15 +150,15 @@ workflow {
             .view()
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.0008
-    def max_thr = 0.01
-    def n_vals = 3 //10
+    def min_thr = 0.08
+    def max_thr = 0.1
+    def n_vals = 2 //10
 
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
 
     // Print the generated thresholds
-    println thresholds
+    //println thresholds
     all_thresholds = Channel.of(thresholds)
          .view()
        
@@ -170,7 +170,10 @@ workflow {
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
     
-    spots_detected_ch = SPOT_FINDER(tuple_with_all, tiles, all_thresholds)
+    merge_tils_thresh = tiles.combine(all_thresholds)
+                        .view()
+    
+    //spots_detected_ch = SPOT_FINDER(tuple_with_all, tiles, all_thresholds)
     //spots_detected_ch[1].view()
     //sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
     
