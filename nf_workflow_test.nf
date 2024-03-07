@@ -9,6 +9,7 @@ include { JOIN_JSON } from './modules/join_json.nf'
 include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
 include { SPOT_FINDER } from './modules/decoding.nf'
 include { TILE_PICKER } from './modules/tile_picker.nf'
+include { DATA_COLLECT4THRESHOLD } from './modules/threshold_finder.nf'
 
 
 def filter_channel(image_id) {
@@ -147,7 +148,7 @@ workflow {
             .map{it ->
                 it[0..6]
                 }
-            .view()
+    //        .view()
     
     // Generate Thresholds but first Define parameters
     def min_thr = 0.08
@@ -157,10 +158,9 @@ workflow {
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
 
-    // Print the generated thresholds
-    //println thresholds
     all_thresholds = Channel.of(thresholds)
-         .view()
+                    .flatten()
+    //                .view()
        
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
@@ -170,15 +170,21 @@ workflow {
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
     
-    merge_tils_thresh = tiles.combine(all_thresholds)
-                        .view()
+    merge_tils_thresh = tiles.combine(thresholds)
+    //                    .view()
     
-    //spots_detected_ch = SPOT_FINDER(tuple_with_all, tiles, all_thresholds)
-    //spots_detected_ch[1].view()
-    //sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
+    spots_detected_ch = SPOT_FINDER(tuple_with_all, tiles.first(), all_thresholds)
     
-    //sorted_starfish_tables = spots_detected_ch[1].toSortedList()
-    //sorted_starfish_tables.view()
+    detected_spots_ch = spots_detected_ch[0].toList()
+    
+    starfish_tables = spots_detected_ch[1].flatten()
+    starfish_tables.view()
+    
+    starfish_thresh = spots_detected_ch[2].toList()
+    starfish_thresh.view()
+    
+    picked_threshold = DATA_COLLECT4THRESHOLD(starfish_tables)
+    picked_threshold.view()
     
     //postcode_results = POSTCODE_DECODER(
     //    Channel.fromPath(params.ExpMetaJson),

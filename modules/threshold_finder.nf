@@ -1,16 +1,15 @@
 pythonScript = "${workflow.projectDir}/bin/threshold_finder.py"
 
-process THRESHOLD_FINDER {
+process DATA_COLLECT4THRESHOLD {
 
     input:
-    val(tilePicker_thresholds)
-    val(sorted_starfish_tables)
+    path(starfish_tables)
 
     output:
-    val(threshold)
+    path('*.csv')
     
     script:
     """
-    python ${pythonScript} run_threshold ${thresholds} ${tables} 
+    python ${pythonScript} data_collect $starfish_tables
     """
 }
