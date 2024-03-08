@@ -3,13 +3,15 @@ nextflow.enable.dsl=2
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
 include { TILING } from './modules/tiler.nf'
+include { TILE_SIZE_ESTIMATOR } from './modules/tile_size_estimator.nf'
 include { SPACETX } from './modules/spacetx.nf'
 include { JOIN_JSON } from './modules/join_json.nf'
 include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
-include { SPOT_FINDER } from './modules/decoding.nf'
+include { SPOT_FINDER as SPOT_FINDER1 } from './modules/decoding.nf'
+include { SPOT_FINDER as SPOT_FINDER2 } from './modules/decoding.nf'
 include { TILE_PICKER } from './modules/tile_picker.nf'
 include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
-include { TILE_INTENSITY } from './modules/tile_intensity.nf'
+include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 
 
 def filter_channel(image_id) {
@@ -63,7 +65,6 @@ workflow {
         .fromPath(params.movingImagesApplyPath)
         .map { it -> 
             [it.baseName[0,1], it]}
-
 
     // Use previous channel and LEARN_TRANSFORM output to apply transformations based on 
     // the SampleID for combining both channels:
@@ -120,9 +121,11 @@ workflow {
     grouped_tiled_images_flat = grouped_tiled_images
         .map { it ->
             [it[0], it[1].flatten()]}
+    
     //grouped_tiled_images_flat.view()
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
     //grouped_input.view()
+    
     spacetx_out = SPACETX(grouped_input)
     // Collect all the output from SpaceTx for feeding the following parts:
     all_spacetx_files = spacetx_out
@@ -130,25 +133,6 @@ workflow {
             it[1]}
         .flatten()
     //all_spacetx_files.view()
-
-    all_spacetx_tiff = spacetx_out
-        .map {it ->
-            it[2]}
-        //.collect()
-        .flatten()
-    //all_spacetx_tiff.view()
-
-    
-    all_spacetx_anchorDots = all_spacetx_tiff
-        //.filter (~/^anchor_dots-fov.*/ )
-        //.flatten()
-        //.filter { file ->
-        //file.contains("anchor_dots-fov")
-        //}
-        .filter { file -> file =~ /anchor_dots/ }
-        .flatten()
-        //.groupTuple()
-    //all_spacetx_anchorDots.view()
     
     // Join all spacetx files with codebook and experiment JSONs:
     exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
@@ -161,106 +145,66 @@ workflow {
         .toList()
     
     tile_picker = TILE_PICKER(tuple_with_all, Channel.of('5'))
-    a = tile_picker
+    tiles = tile_picker
             .splitText()
-            .view()
-   
-    /*
-    // Merge json files
-    //merge_json = JOIN_JSON(all_spacetx_json)
-    //merge_json.view()
-    
-    // Tile Picker
-    rnd_tiles = all_spacetx_anchorDots.randomSample(5)
-    rnd_tiles.view()
-    //rnd_fov = rnd_tiles
-    //    .filter { file ->
-    //    def match = file =~ /anchor_dots-fov_([0-9]+)-/
-    //    if (match) {
-    //        return match[0][1]
-    //    }
-    //    return null
-    //}.collect().first()
-    //println rnd_fov
-
-    intensities = TILE_INTENSITY(rnd_tiles)
-    intensities.view()
-    
-    //merge_intensities = intensities.flatten()
-    //                               .groupTuple()
-    //                               .view()
-    
-    //max_intensity = intensities.map { file ->
-    //    script:
-    //    """
-    //    content = cat ${file}
-    //    number = content.toInteger()
-    //    println number
-    //    """
-    //    }
-    //max_intensity.view()
-    
-                    //.max {  }
-    //max_intensity.view()
-    
-    
-    //all_tilePicker = TILE_PICKER(all_spacetx_anchorDots)
+            .map{it ->
+                it[0..6]
+                }
+    //        .view()
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.0008
-    def max_thr = 0.01
-    def n_vals = 10
+    def min_thr = 0.08
+    def max_thr = 0.1
+    def n_vals = 2 //10
 
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
 
-    // Print the generated thresholds
-    println thresholds
-
-    
+    all_thresholds = Channel.of(thresholds)
+                     .flatten()
+    //                .view()
        
-    // SPOT FINDER on generated Thresholds
-    // ...
-    // Threshold Finder to pick the best threshold
-    // ...
-    
- 
-    
-    // Auto Threshold finder
-    thresholds = all_tilePicker
-    .map {it ->
-        it[1]}
-    .toList()  
-    thresholds.view()
-    
-    picked_tile = all_tilePicker
-    .map {it ->
-        it[0]}
-    .toList()  
-    picked_tile.view()
-    
+    // Estimate tile size based on the registered anchor image:
+    tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
+    size_ch = tile_metadata_ch[1]
+        .splitText()
 
-    //SPOT_FINDER ...
-    tuple_with_all = all_spacetx_files
-    .mix(ex)
-    .toList()
-    spots_detected_ch = SPOT_FINDER(tuple_with_all, picked_tile, thresholds)
+    total_fovs_ch = tile_metadata_ch[0]
+        .splitText()
+        .map{
+            it -> it.replaceAll("\\s", "")
+        }
+        
+    merge_tiles_thresh = tiles.combine(thresholds)//.view()
+    merge_tiles_thresh_tile = merge_tiles_thresh.map{
+                    it -> it[0]
+                }//.view()
+    merge_tiles_thresh_thresh = merge_tiles_thresh.map{
+                    it -> it[1]
+                }//.view()
+    
+    spots_detected_ch = SPOT_FINDER1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
+    
+    //detected_spots_ch = spots_detected_ch[0].toList()
+    
+    starfish_tables = spots_detected_ch[1].toList()
+    // starfish_tables.view()
+    
+    // starfish_thresh = spots_detected_ch[2].toList()
+    // starfish_thresh.view()
+        
+    picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText()
+
+    spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, picked_threshold)
+    spots_detected_ch[1].view()
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
     
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
-    //sorted_starfish_tables.view()
-    picked_threshold = THRESHOLD_FINDER(thresholds, sorted_starfish_tables)
-    
-    spots_detected_ch = SPOT_FINDER(tuple_with_all, total_fovs_ch, picked_threshold)
-    //spots_detected_ch[1].view()
-    sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
-    
-    sorted_starfish_tables = spots_detected_ch[1].toSortedList()
-    //sorted_starfish_tables.view()
+    sorted_starfish_tables.view() 
     
     postcode_results = POSTCODE_DECODER(
+        Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
-    )
-    */
+     )
 }
