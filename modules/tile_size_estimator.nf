@@ -1,7 +1,7 @@
 pythonScript = "${workflow.projectDir}/bin/tile_size_estimator.py"
 
 process TILE_SIZE_ESTIMATOR {
-    label 'minimal'
+    label 'singleImage'
     
     input:
     path(refImage)
@@ -9,7 +9,7 @@ process TILE_SIZE_ESTIMATOR {
     output:
     //path("*.txt")
     val("total_fovs.txt")
-    path("tile_size.txt")
+    path("*.json")
 
     script:
     """

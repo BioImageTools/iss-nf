@@ -3,7 +3,7 @@ pythonScript = "${workflow.projectDir}/bin/tiler.py"
 process TILING {
     //publishDir "Tiled", mode: 'copy', overwrite: true
     //debug true
-    label 'infinitesimal'
+    label 'tiler'
 
     input:
     tuple val(sampleID), path(transformedImage), val(tile_size), path(experiment_metadata_json)

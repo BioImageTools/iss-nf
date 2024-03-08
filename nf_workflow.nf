@@ -8,6 +8,7 @@ include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
 include { SPOT_FINDER } from './modules/decoding.nf'
 include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
+include { JOIN_COORDINATES } from './modules/join_coords.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -19,24 +20,6 @@ def filter_channel(image_id) {
     } else {
         return 'primary'
     }
-}
-
-process JOIN_COORDINATES {
-    //publishDir "JoinedCoords", mode: "copy", overwrite: true
-    debug true
-    label 'infinitesimal'
-
-    input:
-    tuple val(image_type), path(x)
-
-    output:
-    //stdout
-    tuple val(image_type), file("*.csv")
-
-    script:
-    """
-    python ${workflow.projectDir}/bin/join_coordinates.py join $x
-    """
 }
 
 workflow {
@@ -51,12 +34,11 @@ workflow {
     // Learn transformations and save TXT files with output:
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath)
 
-    //RM LOWER
-    /*
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
     size_ch = tile_metadata_ch[1]
-        .splitText()
+        .map { it ->
+            it.baseName}
 
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
@@ -99,6 +81,8 @@ workflow {
         .combine(size_ch)
         .combine(Channel.fromPath(params.ExpMetaJSON))
     //redefined_merged_ch_tile.view()
+
+    //size_ch.view()
     
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch_tile)
@@ -116,12 +100,13 @@ workflow {
             [it[0], it[1].flatten()]}
 
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
+    //grouped_input.view()
     
     spacetx_out_tuple = SPACETX(grouped_input)
     //spacetx_out_tuple[1].view()
     spacetx_out = spacetx_out_tuple[0]
     // Collect all the output from SpaceTx for feeding the following parts:
-    
+    /*
     all_spacetx_files = spacetx_out
         .map {it ->
             it[1]}
@@ -145,10 +130,9 @@ workflow {
     //sorted_starfish_tables.view()
     
     postcode_results = POSTCODE_DECODER(
-        Channel.fromPath(params.ExpMetaJson),
+        Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
     )
     */
-    //RM UPPER
 }

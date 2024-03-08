@@ -1,4 +1,4 @@
-import tifffile as tif
+import tifffile as tiff
 import fire
 import json
 from tiler import *
@@ -32,13 +32,13 @@ def write_fov_name(
     
 def estimate_tile_size(image_path: str):
 
-    img = tif.memmap(image_path)
+    img = tiff.memmap(image_path)
     image_shape = img.shape
     
     if min(image_shape) > 10000:
         max_size = 3000
         target_size = 2000
-        l1 = 1500
+        l1 = 1100
         l2 = 3000 
         max_size = min(image_shape[0], image_shape[1], max_size)
         margin_size = {t: (image_shape[0] % t, image_shape[1] % t) for t in range(100, max_size, 100)}
@@ -78,7 +78,7 @@ def estimate_tile_size(image_path: str):
         
     # Save tile size in JSON
     tile_size_dict = str(selected_tileSize)
-    with open('tile_size.txt', 'w') as fh:
+    with open(f'{tile_size_dict}.json', 'w') as fh:
         fh.writelines(tile_size_dict)
         
     # Save TXT file with all FoVs
@@ -86,15 +86,11 @@ def estimate_tile_size(image_path: str):
     vertical_tiles = -(-image_shape[1] // selected_tileSize)
     total_fovs = horizontal_tiles * vertical_tiles
 
-    #for f in range(total_fovs):
-    #    print(write_fov_name(f))
     with open('total_fovs.txt', "w+") as fh:
         for f in range(total_fovs):
-            #print(write_fov_name(f))
             fh.writelines(write_fov_name(f)+'\n')
-    
-    
-    #tile_images(image_path, selected_tileSize)
+
+    return str(selected_tileSize)
 
 if __name__ == "__main__":
     cli = {
