@@ -152,9 +152,9 @@ workflow {
     //        .view()
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.08
-    def max_thr = 0.1
-    def n_vals = 2 //10
+    def min_thr = 0.0008
+    def max_thr = 0.01
+    def n_vals = 10
 
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
@@ -201,9 +201,9 @@ workflow {
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
     sorted_starfish_tables.view() 
     
-    // postcode_results = POSTCODE_DECODER(
-    //     Channel.fromPath(params.ExpMetaJson),
-    //     Channel.fromPath(params.CodeJSON),
-    //     sorted_detected_spots_ch
-    //  )
+    postcode_results = POSTCODE_DECODER(
+        Channel.fromPath(params.ExpMetaJson),
+        Channel.fromPath(params.CodeJSON),
+        sorted_detected_spots_ch
+     )
 }
