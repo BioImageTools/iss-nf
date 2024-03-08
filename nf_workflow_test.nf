@@ -11,6 +11,7 @@ include { SPOT_FINDER as SPOT_FINDER1 } from './modules/decoding.nf'
 include { SPOT_FINDER as SPOT_FINDER2 } from './modules/decoding.nf'
 include { TILE_PICKER } from './modules/tile_picker.nf'
 include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
+include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 
 
 def filter_channel(image_id) {
@@ -152,9 +153,9 @@ workflow {
     //        .view()
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.0008
-    def max_thr = 0.01
-    def n_vals = 10
+    def min_thr = 0.08
+    def max_thr = 0.1
+    def n_vals = 2 //10
 
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
@@ -202,7 +203,7 @@ workflow {
     sorted_starfish_tables.view() 
     
     postcode_results = POSTCODE_DECODER(
-        Channel.fromPath(params.ExpMetaJson),
+        Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
      )
