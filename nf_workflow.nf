@@ -91,25 +91,18 @@ workflow {
     redefined_merged_ch = merged_channel
         .map { it ->
             [filter_channel(it[0]), it[1]]}
-
     //redefined_merged_ch.view()
+
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch)
     //tiled_ch[0].view()
 
     // To do: merge 'coordinates-fov*'
     joined_coords_ch = tiled_ch[1].groupTuple()
-
     //joined_coords_ch.view()
-
-    /*
-    joined_coords_ch
-        .collectFile(keepHeader: true)
-        .view()
-    */
-
     // joined_coords_ch.collect().view()
     //joined_coords_ch.view()
+    
     coords4spacetx = JOIN_COORDINATES(joined_coords_ch)
     //coords4spacetx.view()
 
@@ -117,6 +110,7 @@ workflow {
     //collected_tiles.view()
     grouped_tiled_images = tiled_ch[0].groupTuple()
     //grouped_tiled_images.view()
+    
     // Flatten the files on the tuple:
     grouped_tiled_images_flat = grouped_tiled_images
         .map { it ->
