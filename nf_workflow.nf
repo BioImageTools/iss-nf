@@ -106,7 +106,7 @@ workflow {
     //spacetx_out_tuple[1].view()
     spacetx_out = spacetx_out_tuple[0]
     // Collect all the output from SpaceTx for feeding the following parts:
-    /*
+    
     all_spacetx_files = spacetx_out
         .map {it ->
             it[1]}
@@ -134,5 +134,4 @@ workflow {
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
     )
-    */
 }
