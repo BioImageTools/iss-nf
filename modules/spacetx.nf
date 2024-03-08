@@ -1,6 +1,7 @@
 pythonScript = "${workflow.projectDir}/bin/spacetx.py"
 
 process SPACETX {
+    label 'beast'
 
     input:
     tuple val(imageType), path('*'), path(coords)

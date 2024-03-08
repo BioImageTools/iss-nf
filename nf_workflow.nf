@@ -1,6 +1,5 @@
 #!/usr/bin/env nextflow
-
-//params.inputMovImagesLearnPath = "/scratch/segonzal/Sergio/Matias/Stitched/r{2,3,4}_DAPI.tif"
+nextflow.enable.dsl=2
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
 include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
@@ -9,6 +8,7 @@ include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
 include { SPOT_FINDER } from './modules/decoding.nf'
 include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
+include { JOIN_COORDINATES } from './modules/join_coords.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -20,24 +20,6 @@ def filter_channel(image_id) {
     } else {
         return 'primary'
     }
-}
-
-process JOIN_COORDINATES {
-    //publishDir "JoinedCoords", mode: "copy", overwrite: true
-    debug true
-    label 'infinitesimal'
-
-    input:
-    tuple val(image_type), path(x)
-
-    output:
-    //stdout
-    tuple val(image_type), file("*.csv")
-
-    script:
-    """
-    python ${workflow.projectDir}/bin/join_coordinates.py join $x
-    """
 }
 
 workflow {
@@ -55,7 +37,8 @@ workflow {
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
     size_ch = tile_metadata_ch[1]
-        .splitJson()
+        .map { it ->
+            it.baseName}
 
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
@@ -98,6 +81,8 @@ workflow {
         .combine(size_ch)
         .combine(Channel.fromPath(params.ExpMetaJSON))
     //redefined_merged_ch_tile.view()
+
+    //size_ch.view()
     
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch_tile)
@@ -115,6 +100,7 @@ workflow {
             [it[0], it[1].flatten()]}
 
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
+    //grouped_input.view()
     
     spacetx_out_tuple = SPACETX(grouped_input)
     //spacetx_out_tuple[1].view()
@@ -144,7 +130,7 @@ workflow {
     //sorted_starfish_tables.view()
     
     postcode_results = POSTCODE_DECODER(
-        Channel.fromPath(params.ExpMetaJson),
+        Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
     )
