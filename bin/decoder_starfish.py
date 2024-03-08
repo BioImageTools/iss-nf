@@ -77,7 +77,7 @@ def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTab
 
 def process_fov(
     images_dir_path,
-    fov_name: str,
+    fov_name,
     threshold,
 ):
     print('sssssssssssssss', fov_name, threshold)

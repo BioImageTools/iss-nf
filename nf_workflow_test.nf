@@ -7,9 +7,10 @@ include { TILE_SIZE_ESTIMATOR } from './modules/tile_size_estimator.nf'
 include { SPACETX } from './modules/spacetx.nf'
 include { JOIN_JSON } from './modules/join_json.nf'
 include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
-include { SPOT_FINDER } from './modules/decoding.nf'
+include { SPOT_FINDER as SPOT_FINDER1 } from './modules/decoding.nf'
+include { SPOT_FINDER as SPOT_FINDER2 } from './modules/decoding.nf'
 include { TILE_PICKER } from './modules/tile_picker.nf'
-include { DATA_COLLECT4THRESHOLD } from './modules/threshold_finder.nf'
+include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
 
 
 def filter_channel(image_id) {
@@ -159,7 +160,7 @@ workflow {
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
 
     all_thresholds = Channel.of(thresholds)
-                    .flatten()
+                     .flatten()
     //                .view()
        
     // Estimate tile size based on the registered anchor image:
@@ -169,26 +170,40 @@ workflow {
 
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
+        .map{
+            it -> it.replaceAll("\\s", "")
+        }
+        
+    merge_tiles_thresh = tiles.combine(thresholds)//.view()
+    merge_tiles_thresh_tile = merge_tiles_thresh.map{
+                    it -> it[0]
+                }//.view()
+    merge_tiles_thresh_thresh = merge_tiles_thresh.map{
+                    it -> it[1]
+                }//.view()
     
-    merge_tils_thresh = tiles.combine(thresholds)
-    //                    .view()
+    spots_detected_ch = SPOT_FINDER1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
     
-    spots_detected_ch = SPOT_FINDER(tuple_with_all, tiles.first(), all_thresholds)
+    //detected_spots_ch = spots_detected_ch[0].toList()
     
-    detected_spots_ch = spots_detected_ch[0].toList()
+    starfish_tables = spots_detected_ch[1].toList()
+    // starfish_tables.view()
     
-    starfish_tables = spots_detected_ch[1].flatten()
-    starfish_tables.view()
+    // starfish_thresh = spots_detected_ch[2].toList()
+    // starfish_thresh.view()
+        
+    picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText()
+
+    spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, picked_threshold)
+    spots_detected_ch[1].view()
+    sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
     
-    starfish_thresh = spots_detected_ch[2].toList()
-    starfish_thresh.view()
+    sorted_starfish_tables = spots_detected_ch[1].toSortedList()
+    sorted_starfish_tables.view() 
     
-    picked_threshold = DATA_COLLECT4THRESHOLD(starfish_tables)
-    picked_threshold.view()
-    
-    //postcode_results = POSTCODE_DECODER(
-    //    Channel.fromPath(params.ExpMetaJson),
-    //    Channel.fromPath(params.CodeJSON),
-    //    sorted_detected_spots_ch
-    //)
+    // postcode_results = POSTCODE_DECODER(
+    //     Channel.fromPath(params.ExpMetaJson),
+    //     Channel.fromPath(params.CodeJSON),
+    //     sorted_detected_spots_ch
+    //  )
 }
