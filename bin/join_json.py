@@ -1,7 +1,6 @@
 import json
 import fire
 
-
 def join_json(*args):
     
     file_paths = args

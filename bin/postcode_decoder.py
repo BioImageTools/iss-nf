@@ -1,5 +1,4 @@
 #Input will be folder containing python files, each of the with the name of the FoV:
-
 import numpy as np
 import os
 import fire

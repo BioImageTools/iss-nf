@@ -1,15 +1,10 @@
 import os
 import fire
-import csv
 from collections import namedtuple
 from typing import Union
-
 import numpy as np
 import tifffile as tiff
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from skimage.transform import resize, rescale
 
 # For future changes:
 ch_map = {'ch0': 0, 'ch1': 1, 'ch2': 2, 'ch3': 3}

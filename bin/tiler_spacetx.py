@@ -1,15 +1,10 @@
 import os
-import csv
 from collections import namedtuple
-from typing import Union
 from shutil import copyfile
 from slicedimage import ImageFormat
 import numpy as np
 import tifffile as tiff
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from skimage.transform import resize, rescale
 from starfish.experiment.builder import format_structured_dataset
 
 
