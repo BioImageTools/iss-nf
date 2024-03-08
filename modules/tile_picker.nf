@@ -1,4 +1,4 @@
-pythonScript = "${workflow.projectDir}/bin/tile_picker2.py"
+pythonScript = "${workflow.projectDir}/bin/tile_picker.py"
 
 process TILE_PICKER {
 

@@ -2,7 +2,6 @@ import os
 import fire
 import numpy as np
 import tifffile as tiff
-from skimage import transform as tf
 from skimage.io import imsave
 from skimage.exposure import rescale_intensity
 

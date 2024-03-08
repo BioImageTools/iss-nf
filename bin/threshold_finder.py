@@ -1,9 +1,4 @@
-import os
-import random
 import numpy as np
-import tifffile as tif
-import re
-import statistics
 import pandas as pd
 import fire
 

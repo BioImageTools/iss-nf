@@ -1,4 +1,3 @@
-import os
 import fire
 
 def read_file_contents(
