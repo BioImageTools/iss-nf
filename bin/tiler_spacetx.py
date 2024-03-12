@@ -1,16 +1,12 @@
 import os
-import fire
 from collections import namedtuple
-from typing import Union
+from shutil import copyfile
+from slicedimage import ImageFormat
 import numpy as np
 import tifffile as tiff
 import pandas as pd
+from starfish.experiment.builder import format_structured_dataset
 
-# For future changes:
-ch_map = {'ch0': 0, 'ch1': 1, 'ch2': 2, 'ch3': 3}
-
-# Couple of missing things:
-# 'coordinates.csv' missing 'fov' name and also for additional rounds/channels
 
 def needs_padding(tile, tile_size) -> bool:
     return any([tile.shape[i] < tile_size for i in [0, 1]])
@@ -31,13 +27,12 @@ def select_roi(image, roi):
                  roi.col:roi.col + roi.ncols]
 
 def get_round_id(name):
-    #r = int(name.split('r')[1].split('_')[0])
-    #r -= 1
-    r = int(name.split('_')[1][-1])
+    r = int(name.split('r')[1].split('_')[0])
+    r -= 1  
     return r
 
 def get_ch_id(name):
-    # Note! Maybe this should come from some JSON with experiment metadata!
+    ch_map = {'Cy7': 0, 'Cy5': 2, 'Cy3': 1, 'FITC': 3}
     return [ch_map[flcr] for flcr in ch_map if flcr in name][0]
 
 def get_tile_coordinates(tile_size: int, image_shape) -> None:
@@ -69,7 +64,6 @@ def get_tile_coordinates(tile_size: int, image_shape) -> None:
 def tile_image(image, image_name, tile_size, img_type, output_dir,
               tile_coordinates):
 
-    coordinates = []
     for tile_id in tile_coordinates:
         coords = tile_coordinates[tile_id]
         tile = select_roi(
@@ -83,19 +77,19 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
             if img_type in ['primary'] else 0
 
         file_name = f'{img_type}-f{tile_id}-r{r}-c{c}-z0.tiff'
-        #tiff.imsave(os.path.join(output_dir, file_name), tile) Original Nima
-        tiff.imsave(os.path.join(output_dir, file_name), tile)
+        img_saving_path = os.path.join(output_dir, file_name)
         
-        coordinates.append([
+        tiff.imsave(img_saving_path, tile)
+        coordinates = ([
             tile_id, r, c, 0,
             coords.col, coords.row, 0,
             coords.col + tile_size, coords.row + tile_size, 0.0001])
+        
+        path_to_csv =  os.path.join(output_dir, f'coordinates_{tile_id}.csv')
+        coords_to_csv =  write_coords_file([coordinates], path_to_csv)
+        
+        format_structured_dataset(output_dir, path_to_csv, output_dir, ImageFormat.TIFF,)
 
-    write_coords_file(
-	    coordinates,
-            os.path.join(output_dir, f'coordinates-r{r}-c{c}-z0.csv')) 
-
-    return coordinates
 
 def write_coords_file(coordinates, file_path) -> None:
     coords_df = pd.DataFrame(
@@ -104,8 +98,37 @@ def write_coords_file(coordinates, file_path) -> None:
                  'xc_min', 'yc_min', 'zc_min',
                  'xc_max', 'yc_max', 'zc_max'))
     coords_df.to_csv(file_path, index=False)
+    return coords_df
 
-def tile_images(image_path, tile_size, output) -> None:
+def merge_outputs(spacetx_dir: str, merge_dirs: list) -> None:
+    for i, d in enumerate(merge_dirs):
+        with open(os.path.join(
+            spacetx_dir, 'primary', 'experiment.json'), 'r+') as fh:
+            contents = fh.readlines()
+
+            contents[i + 3] = ','.join([contents[i + 3].strip('\n'), '\n'])
+            contents.insert(i + 4, f'\t"{d}": "../{d}/{d}.json"\n')
+            fh.seek(0)
+            fh.writelines(contents)
+            fh.seek(0)
+
+    for d in merge_dirs:
+
+        if d != 'primary':
+            os.remove(os.path.join(spacetx_dir, d, 'experiment.json'))
+            os.remove(os.path.join(spacetx_dir, d, 'codebook.json'))
+
+def copy_codebook_file(spacetx_dir: str, codebook_file: str) -> None:
+
+    print('Placeholder codebook to replace:')
+    with open(os.path.join(
+        spacetx_dir, 'primary', 'codebook.json'), 'r') as fh:
+        print(fh.read())
+
+    copyfile(codebook_file,
+                os.path.join(spacetx_dir, 'primary', 'codebook.json'))
+
+def tile_spaceTx_images(image_path, tile_size,  output_dir) -> None:
     
     image = tiff.memmap(image_path)
     image_shape = image.shape
@@ -120,20 +143,18 @@ def tile_images(image_path, tile_size, output) -> None:
     else:
         img_type = 'primary'
         
-    
-    #output = os.path.join(output, img_type)
+    output = os.path.join(output_dir, img_type)
 
-    #if img_type != 'nuclei':
-        #os.makedirs(img_type)
     tile_coordinates = get_tile_coordinates(tile_size, image_shape)
     
     coordinates = tile_image(image, image_name, tile_size, img_type, output,
-                                tile_coordinates)
+                            tile_coordinates)  
             
         
 if __name__ == "__main__":
-    cli = {
-        "run_tiling": tile_images
-    }
-    fire.Fire(cli)
-	
+    
+    tile_spaceTx_images(image_path, tile_size, output_dir)
+            
+            
+            
+            
