@@ -1,7 +1,7 @@
 pythonScript = "${workflow.projectDir}/bin/postcode_decoder.py"
 
 process POSTCODE_DECODER {
-    label 'long'
+    label 'beast'
 
     input:
     path(exp_meta_json)

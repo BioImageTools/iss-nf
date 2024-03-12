@@ -1,7 +1,8 @@
 pythonScript = "${workflow.projectDir}/bin/decoder_starfish.py"
 
 process SPOT_FINDER {
-    label 'minimal'
+    //catch error and resubmit
+    label 'decoding'
     input:
     path('*')
     val(fov_id)

@@ -8,7 +8,7 @@ process TILE_SIZE_ESTIMATOR {
 
     output:
     //path("*.txt")
-    val("total_fovs.txt")
+    path("total_fovs.txt")
     path("*.json")
 
     script:

@@ -24,6 +24,7 @@ def filter_channel(image_id) {
 
 workflow {
     // Create tuple with round ID and channels to Register:
+    
     movingLearn_ch = Channel
         .fromPath(params.inputMovImagesLearnPath)
         .map{ f ->
@@ -33,7 +34,7 @@ workflow {
 
     // Learn transformations and save TXT files with output:
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath)
-
+    
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
     size_ch = tile_metadata_ch[1]
@@ -42,6 +43,7 @@ workflow {
 
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
+        .map { it -> it.trim() }
 
     // To use later for the DECODING_POSTCODE process:
     coordinates_csv = tile_metadata_ch[2]
@@ -121,6 +123,8 @@ workflow {
     tuple_with_all = all_spacetx_files
         .mix(exp_plus_codebook)
         .toList()
+
+    //tuple_with_all.view()
 
     spots_detected_ch = SPOT_FINDER(tuple_with_all, total_fovs_ch)
     //spots_detected_ch[1].view()
