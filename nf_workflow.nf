@@ -32,9 +32,12 @@ workflow {
             return [sampleID[0,1], f]
          }
 
-    // Learn transformations and save TXT files with output:
-    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath)
-    
+    // Learn transformations and save TXT files with output;
+    // Make parameter metadata channel:
+    params_reg_ch = Channel.fromPath(params.elastix_parameter_files)
+        .toSortedList()
+    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
+
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
     size_ch = tile_metadata_ch[1]
@@ -61,7 +64,7 @@ workflow {
 
     renamed_registered_out_ch = registered_out_ch
         .map{it -> [it[1].baseName, it[1]]}
-
+    
     // Normalized the missing images:
     missing_round = Channel
         .fromPath(params.inputUntransformedImagesPath)
