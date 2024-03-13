@@ -2,6 +2,7 @@
 nextflow.enable.dsl=2
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
+include { REGISTER_QC } from './modules/register_qc.nf'
 include { TILING } from './modules/tiler.nf'
 include { TILE_SIZE_ESTIMATOR } from './modules/tile_size_estimator.nf'
 include { SPACETX } from './modules/spacetx.nf'
@@ -92,6 +93,14 @@ workflow {
         .map { it ->
             [filter_channel(it[0]), it[1]]}
     //redefined_merged_ch.view()
+
+    dapis_path = registered_out_ch
+        .map{it -> it[1]}
+        .toList()
+
+    nuclei_path = missing_round_norm.map{it -> it[1]}
+
+    reg_html = REGISTER_QC(nuclei_path, dapis_path)
 
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch)
