@@ -46,6 +46,7 @@ target
 **.csv
 **/Final_Results
 test_workflow.nf
+**/Output/
 
 # Apptainer
 **.sif

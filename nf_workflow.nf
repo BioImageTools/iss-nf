@@ -37,7 +37,7 @@ workflow {
     params_reg_ch = Channel.fromPath(params.elastix_parameter_files)
         .toSortedList()
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
-
+    
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
     size_ch = tile_metadata_ch[1]
@@ -135,7 +135,7 @@ workflow {
     
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
     //sorted_starfish_tables.view()
-    
+
     postcode_results = POSTCODE_DECODER(
         Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
