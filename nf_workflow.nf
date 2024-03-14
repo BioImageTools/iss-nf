@@ -6,7 +6,10 @@ include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
 include { TILE_SIZE_ESTIMATOR } from './modules/tile_size_estimator.nf'
 include { TILING } from './modules/tiler.nf'
 include { SPACETX } from './modules/spacetx.nf'
-include { SPOT_FINDER } from './modules/decoding.nf'
+include { TILE_PICKER } from './modules/tile_picker.nf'
+include { SPOT_FINDER as SPOT_FINDER1 } from './modules/decoding.nf'
+include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
+include { SPOT_FINDER as SPOT_FINDER2 } from './modules/decoding.nf'
 include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 include { JOIN_COORDINATES } from './modules/join_coords.nf'
 
@@ -37,7 +40,7 @@ workflow {
     params_reg_ch = Channel.fromPath(params.elastix_parameter_files)
         .toSortedList()
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
-    
+
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
     size_ch = tile_metadata_ch[1]
@@ -71,7 +74,6 @@ workflow {
         .map { it ->
             [it.baseName, it]
         }
-
     missing_round_norm = NORMALIZE(missing_round)
     merged_channel = missing_round_norm.mix(renamed_registered_out_ch)
 
@@ -81,14 +83,24 @@ workflow {
         .map { it ->
             [filter_channel(it[0]), it[1]]}
 
+    // Estimate tile size based on the registered anchor image:
+    tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
+    size_ch = tile_metadata_ch[1]
+        .map { it ->
+            it.baseName}
+
+    // To use later for the DECODING_POSTCODE process:
+    coordinates_csv = tile_metadata_ch[2]
+
+    total_fovs_ch = tile_metadata_ch[0]
+        .splitText()
+        .map { it -> it.trim() }
+
     // Add tile size as third argument for the input:
     redefined_merged_ch_tile = redefined_merged_ch
         .combine(size_ch)
         .combine(Channel.fromPath(params.ExpMetaJSON))
-    //redefined_merged_ch_tile.view()
 
-    //size_ch.view()
-    
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch_tile)
 
@@ -117,6 +129,8 @@ workflow {
             it[1]}
         .flatten()
 
+    //redefined_merged_ch_tile.view()
+
     // Join all spacetx files with codebook and experiment JSONs:
     exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
 
@@ -128,8 +142,43 @@ workflow {
         .toList()
 
     //tuple_with_all.view()
+    // Automatic threshold detection:
+    // Select random tiles:
+    tile_picker = TILE_PICKER(tuple_with_all, Channel.of('5'))
+    tiles = tile_picker
+        .splitText()
+        .map{it ->
+            it[0..6]
+            }
+    // Generate Thresholds but first Define parameters
+    def min_thr = 0.08
+    def max_thr = 0.1
+    def n_vals = 2
 
-    spots_detected_ch = SPOT_FINDER(tuple_with_all, total_fovs_ch)
+    def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
+    def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
+
+    all_thresholds = Channel.of(thresholds)
+                     .flatten()
+
+    fov_and_threshold_ch = tiles.combine(thresholds)
+    only_fov_ch = fov_and_threshold_ch.map{ it -> it[0] }
+    only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
+
+    decoding_results = SPOT_FINDER1(tuple_with_all, only_fov_ch, only_thr_ch)
+    starfish_tables = decoding_results[1].toList()
+    //detected_spots_ch = spots_detected_ch[0].toList()
+    
+    //starfish_tables = spots_detected_ch[1].toList()
+    //starfish_tables.view()
+    // starfish_tables.view()
+    
+    // starfish_thresh = spots_detected_ch[2].toList()
+    // starfish_thresh.view()
+    
+    picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText().map{ it -> it.trim()}
+
+    spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, picked_threshold)
     //spots_detected_ch[1].view()
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
     

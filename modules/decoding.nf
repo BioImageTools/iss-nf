@@ -6,6 +6,7 @@ process SPOT_FINDER {
     input:
     path('*')
     val(fov_id)
+    val(threshold)
     //file coordinates from params.imageDir
 
     output:
@@ -14,6 +15,6 @@ process SPOT_FINDER {
 
     script:
     """
-    python ${pythonScript} decode_fov ./ $fov_id
+    python ${pythonScript} decode_fov ./ $fov_id $threshold
     """
    }
