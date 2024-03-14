@@ -169,6 +169,8 @@ workflow {
        
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
+    html_tile = tile_metadata_ch[2]
+    html_tile.view()
     size_ch = tile_metadata_ch[1]
         .splitText()
 
