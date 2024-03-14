@@ -58,11 +58,68 @@ def robust_min_max_norm(
         tiff.imwrite("norm_" + image_name, image)
     else:
         return image
+    
+def _downsample(
+    img: itk.Image,
+    rescale_factor
+):
+    """
+    Downsampling function using the 'itk-elastix' library.
+    """
+    input_size, input_spacing, input_origin = itk.size(img), itk.spacing(img), itk.origin(img)
+    Dimension = img.GetImageDimension()
+    # Define downsampled output image metadata:
+    #!!!! Following 1 should be a rescale factor from the parameters file
+    output_size = [int(input_size[d] / rescale_factor)
+                for d in range(Dimension)]
+    output_spacing = [input_spacing[d] * rescale_factor
+                    for d in range(Dimension)]
+    output_origin = [input_origin[d] + 0.5 * (output_spacing[d] - input_spacing[d])
+                    for d in range(Dimension)]
+
+    scale_transform = itk.ScaleTransform[itk.D, Dimension].New()
+    scale_transform_parameters = scale_transform.GetParameters()
+    # Init scale_transform
+    for i in range(len(scale_transform_parameters)):
+        scale_transform_parameters[i] = 1
+
+    scale_transform_center = [float(int(s / 2)) for s in input_size]
+    scale_transform.SetParameters(scale_transform_parameters)
+    scale_transform.SetCenter(scale_transform_center)
+
+    interpolator = itk.LinearInterpolateImageFunction.New(img)
+
+    resampled = itk.resample_image_filter(
+        img,
+        transform=scale_transform,
+        interpolator=interpolator,
+        size=output_size,
+        output_spacing=output_spacing,
+        output_origin=output_origin,
+    )
+    return resampled
+def _set_upsampled_parameter_values(
+    parameter_object,
+    param_file_num,
+    img_size,
+    img_origin,
+    img_spacing
+    ):
+    parameter_object.SetParameter(
+        param_file_num, "Size", [str(img_size[0]), str(img_size[1])])
+    parameter_object.SetParameter(
+        param_file_num, "Origin", [str(img_origin[0]), str(img_origin[1])])
+    parameter_object.SetParameter(
+        param_file_num, "Spacing",
+        [str(img_spacing[0]), str(img_spacing[1])])
+
+    return parameter_object
 
 def learn_transform(
     fix_image_path: str,
     mov_image_path: str,
-    parameter_files: str
+    rescale_factor,
+    *args
 ):
     """
     Main function for learning transformation using ITK.
@@ -91,16 +148,24 @@ def learn_transform(
     ### END OF NOTE FROM ABOVE
     
     # Build parameter object:
+    parameter_text_files = sorted(args)
     parameter_object = itk.ParameterObject.New()
-    parameter_object.ReadParameterFile(parameter_files)
+    parameter_object.ReadParameterFile(parameter_text_files)
+    total_transformations = parameter_object.GetNumberOfParameterMaps()
     
-    result_image, result_transform_parameters = itk.elastix_registration_method(
-        read_image(fix_image_path),
-        read_image(mov_image_path),
-        parameter_object = parameter_object,
-        log_to_console=False
+    fixed_image = _downsample(read_image(fix_image_path), int(rescale_factor))
+    moving_image=_downsample(read_image(mov_image_path), int(rescale_factor))
+    _, result_transform_parameters = itk.elastix_registration_method(
+        fixed_image,
+        moving_image,
+        parameter_object=parameter_object
     )
     
+    
+    fix_img = read_image(fix_image_path)
+    fix_size = itk.size(fix_img)
+    fix_origin = itk.origin(fix_img)
+    fix_spacing = itk.spacing(fix_img)
     # Get round number for transformation:
     round_id = os.path.basename(mov_image_path)[:2]
     
@@ -111,18 +176,20 @@ def learn_transform(
     #        f"transformation_{i+1}.txt"
     #    )
     ### END OF NOTE
-    
+
     # Remove here after part above:
-    result_transform_parameters.WriteParameterFile(
-        result_transform_parameters.GetParameterMap(0),
-        f"{round_id}_test_transformation.txt"
-    )
-    
+    for index in range(total_transformations):
+        result_transform_parameters = _set_upsampled_parameter_values(
+                result_transform_parameters, index, fix_size, fix_origin, fix_spacing)
+        parameter_object.WriteParameterFile(
+            result_transform_parameters.GetParameterMap(index), 
+            f"{round_id}_{index}_test_transformation.txt")
+
     #return f'Learning transformation from test is done!'
     
 def apply_transform(
-    parameter_result_transf: str,
-    mov_image: str
+    mov_image: str,
+    *args
 ):
     """
     Function to apply transformations learned from `learn_transform` function.
@@ -139,14 +206,13 @@ def apply_transform(
     Transformed image.
     """
     parameter_object = itk.ParameterObject.New()
-    parameter_object.ReadParameterFile(parameter_result_transf)
+    parameter_object.ReadParameterFile(sorted(args))
     
     image = itk.imread(mov_image, itk.F)
     aligned_image = itk.transformix_filter(
-        moving_image = image,
-        transform_parameter_object = parameter_object,
-        log_to_console=False)
-    
+        image,
+        transform_parameter_object = parameter_object)
+
     base_name = os.path.basename(mov_image)
     output_name = "registered_" + base_name
     aligned_image = np.asarray(aligned_image)

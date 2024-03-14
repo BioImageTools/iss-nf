@@ -1,0 +1,6 @@
+To build a Docker container just run the following command inside the corresponding directory:
+
+$ docker build -t <<user/name_of_image:version>> .
+
+For some yet unknwon reason, the Docker file cannot be used by Nextflow with the current implementation
+because of the line `ENTRYPOINT ["/bin/bash"]` in the Dockerfile. For Singularity this line must be in the script I think.

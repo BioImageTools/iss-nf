@@ -1,4 +1,4 @@
-pythonScript = "${workflow.projectDir}/bin/registration_multi.py"
+pythonScript = "${workflow.projectDir}/bin/registration.py"
 
 process LEARN_TRANSFORM {
     //publishDir "Transformations", mode: 'copy', overwrite: true
