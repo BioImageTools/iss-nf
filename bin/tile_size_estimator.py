@@ -2,7 +2,8 @@ import tifffile as tif
 import fire
 import json
 from tiler import *
-
+import base64
+import matplotlib.pyplot as plt
 
 def plot_tile_grid(image, tileSize):
     plt.imshow(image, cmap='gray')
@@ -16,7 +17,28 @@ def plot_tile_grid(image, tileSize):
     
     plt.ylim(height, 0) 
     plt.gca().set_aspect('equal', adjustable='box') 
+    qc_path = os.getcwd()
+    output_plot_path = os.path.join(qc_path, "tileSize_qc_plots.png")
+    plt.savefig(output_plot_path, bbox_inches='tight')
     plt.show()
+    with open(output_plot_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+
+    html_content = f"""
+    <html>
+    <head>
+    <title>Tile Size QC Plot</title>
+    </head>
+    <body>
+    <h1>QC Plot</h1>
+    <p>This plot shows the picked tile size for the images.</p>
+    <img src="data:image/png;base64,{encoded_string}" alt="QC Plot">
+    </body>
+    </html>
+    """
+    output_html_path = os.path.join(qc_path, "tileSize_qc.html")
+    with open(output_html_path, 'w') as f:
+        f.write(html_content)
     
 def write_fov_name(
     fov
@@ -73,8 +95,8 @@ def estimate_tile_size(image_path: str):
     if image_shape[0] < 800:
         selected_tileSize = 256
 
-    #if verbose:
-    #    plot_tile_grid(img, selected_tileSize)
+    
+    plot_tile_grid(img, selected_tileSize)
         
     # Save tile size in JSON
     tile_size_dict = [str(selected_tileSize)]

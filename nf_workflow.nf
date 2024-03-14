@@ -101,7 +101,7 @@ workflow {
     nuclei_path = missing_round_norm.map{it -> it[1]}
 
     reg_html = REGISTER_QC(nuclei_path, dapis_path)
-
+ 
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch)
     //tiled_ch[0].view()
@@ -209,5 +209,5 @@ workflow {
         Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
-     )
+     ) 
 }
