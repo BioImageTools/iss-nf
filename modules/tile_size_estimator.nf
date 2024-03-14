@@ -9,6 +9,7 @@ process TILE_SIZE_ESTIMATOR {
     output:
     path("*.txt")
     path("*.json")
+    path('*.html')
 
     script:
     """
