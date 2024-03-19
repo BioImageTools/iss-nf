@@ -13,6 +13,7 @@ include { SPOT_FINDER as SPOT_FINDER2 } from './modules/decoding.nf'
 include { TILE_PICKER } from './modules/tile_picker.nf'
 include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
 include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
+include { DECODER_QC } from './modules/decoder_qc.nf'
 
 
 def filter_channel(image_id) {
@@ -212,4 +213,7 @@ workflow {
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
      ) 
+    postcode_csv = postcode_results.view()
+
+    decoder_html = DECODER_QC(postcode_csv)
 }

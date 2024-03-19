@@ -60,7 +60,7 @@ def estimate_tile_size(image_path: str):
     if min(image_shape) > 10000:
         max_size = 3000
         target_size = 2000
-        l1 = 1500
+        l1 = 1100
         l2 = 3000 
         max_size = min(image_shape[0], image_shape[1], max_size)
         margin_size = {t: (image_shape[0] % t, image_shape[1] % t) for t in range(100, max_size, 100)}
