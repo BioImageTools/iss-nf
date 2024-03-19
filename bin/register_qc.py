@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import tifffile as tif
 from skimage.transform import rescale
 import sys
-import fire
 import base64
 
 def downsample_img(img, factor):
@@ -106,8 +105,6 @@ def reg_qc_plot(nuclei_dir, dapis_path):
     output_html_path = os.path.join(qc_path, "reg_qc.html")
     with open(output_html_path, 'w') as f:
         f.write(html_content)
-
-    print("Plot and HTML file saved successfully.")
     
 
 if __name__ == "__main__":
