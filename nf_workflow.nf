@@ -25,34 +25,29 @@ def filter_channel(image_id) {
     }
 }
 
-workflow {
-    // Create tuple with round ID and channels to Register:
-    
-    movingLearn_ch = Channel
+workflow registration {
+
+    // Define tuple of round ID and file path for moving images:
+    movingLearnReg_ch = Channel
         .fromPath(params.inputMovImagesLearnPath)
         .map{ f ->
             sampleID = f.baseName
             return [sampleID[0,1], f]
-         }
+            }
+    // Parameter files channel:
+    params_reg_ch = Channel
+        .fromPath(params.elastix_parameter_files)
+        .toSortedList()
+    // 
+    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputFixImagePath, params.rescale_factor, params_reg_ch)
+}
 
+workflow {
     // Learn transformations and save TXT files with output;
     // Make parameter metadata channel:
     params_reg_ch = Channel.fromPath(params.elastix_parameter_files)
         .toSortedList()
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
-
-    // Estimate tile size based on the registered anchor image:
-    tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
-    size_ch = tile_metadata_ch[1]
-        .map { it ->
-            it.baseName}
-
-    total_fovs_ch = tile_metadata_ch[0]
-        .splitText()
-        .map { it -> it.trim() }
-
-    // To use later for the DECODING_POSTCODE process:
-    coordinates_csv = tile_metadata_ch[2]
 
     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
@@ -175,7 +170,7 @@ workflow {
     
     // starfish_thresh = spots_detected_ch[2].toList()
     // starfish_thresh.view()
-    
+
     picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText().map{ it -> it.trim()}
 
     spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, picked_threshold)
@@ -184,7 +179,7 @@ workflow {
     
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
     //sorted_starfish_tables.view()
-
+    
     postcode_results = POSTCODE_DECODER(
         Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
