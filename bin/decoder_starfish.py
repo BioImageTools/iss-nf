@@ -119,7 +119,7 @@ def process_fov(
     np.save(f'{fov_name}.npy', spots4postcode)
     # Do starfish decoding already in here:
     decoded = decode(spots, exp)
-    decoded.to_features_dataframe().to_csv(f"{fov_name}-{str(threshold).split('.')[1]}-starfish_results.csv", index=False)
+    decoded.to_features_dataframe().to_csv(f"{fov_name}-{str(threshold)}-starfish_results.csv", index=False)
 
 
 if __name__ == "__main__":

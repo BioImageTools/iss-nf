@@ -25,7 +25,10 @@ def filter_channel(image_id) {
     }
 }
 
-workflow registration {
+//workflow registration {
+//}
+
+workflow {
 
     // Define tuple of round ID and file path for moving images:
     movingLearnReg_ch = Channel
@@ -39,15 +42,7 @@ workflow registration {
         .fromPath(params.elastix_parameter_files)
         .toSortedList()
     // 
-    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputFixImagePath, params.rescale_factor, params_reg_ch)
-}
-
-workflow {
-    // Learn transformations and save TXT files with output;
-    // Make parameter metadata channel:
-    params_reg_ch = Channel.fromPath(params.elastix_parameter_files)
-        .toSortedList()
-    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
+    learnTransformation_ch = LEARN_TRANSFORM(movingLearnReg_ch, params.inputFixImagePath, params.rescale_factor, params_reg_ch)
 
     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
@@ -62,6 +57,7 @@ workflow {
 
     renamed_registered_out_ch = registered_out_ch
         .map{it -> [it[1].baseName, it[1]]}
+
     
     // Normalized the missing images:
     missing_round = Channel
@@ -79,7 +75,7 @@ workflow {
             [filter_channel(it[0]), it[1]]}
 
     // Estimate tile size based on the registered anchor image:
-    tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
+    tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputFixImagePath))
     size_ch = tile_metadata_ch[1]
         .map { it ->
             it.baseName}

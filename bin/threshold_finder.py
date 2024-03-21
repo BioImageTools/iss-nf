@@ -101,13 +101,15 @@ def auto_threshold(*args):
 
     for path in args:
         
-        #components = path.split('/')
-        #filename = components[-1]
+        components = path.split('/')
+        filename = components[-1]
         fov_name = path.split('-')[0]
-        last_part = path.split('-')[-1]
-        decimal_value = len(path)
-        threshold_str = float(path.split('-')[1])
-        threshold = threshold_str * 10**(-decimal_value)
+        last_part = path.split('-')[-2]
+        threshold = float(last_part)
+        #threshold = float(last_part[:-4])
+        #decimal_value = len(path)
+        #threshold_str = float(path.split('-')[1])
+        #threshold = threshold_str * 10**(-decimal_value)
         
         df = pd.read_csv(path)
 
