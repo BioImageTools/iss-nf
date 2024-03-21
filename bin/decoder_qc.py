@@ -313,7 +313,7 @@ def decoder_qc(table):
     html_content += '</body></html>'
 
     # Write the HTML content to a file named "plots.html" in the current directory
-    html_file_path = os.path.join(current_dir, 'decoding_plots.html')
+    html_file_path = os.path.join(current_dir, '3-decoding_plots.html')
     with open(html_file_path, 'w') as f:
         f.write(html_content)
 

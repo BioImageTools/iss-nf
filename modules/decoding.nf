@@ -1,6 +1,9 @@
 pythonScript = "${workflow.projectDir}/bin/decoder_starfish.py"
 
 process SPOT_FINDER {
+    
+    //debug true
+    label 'decoding'
 
     input:
     path('*')

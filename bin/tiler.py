@@ -1,13 +1,22 @@
 import os
 import fire
 from collections import namedtuple
-from typing import Union
+import exp_metadata_json as exp_meta
 import numpy as np
 import tifffile as tiff
 import pandas as pd
 
+
 # For future changes:
-ch_map = {'ch0': 0, 'ch1': 1, 'ch2': 2, 'ch3': 3}
+def get_ch_map(
+    experiment_metadata_json
+):
+    ExpJsonParser = exp_meta.ExpJsonParser(experiment_metadata_json)
+    try:
+        return ExpJsonParser.meta['primary_metadata']["channel_dict"]
+        
+    except:
+        print("Experiment metadata file not properly formatted")
 
 # Couple of missing things:
 # 'coordinates.csv' missing 'fov' name and also for additional rounds/channels
@@ -36,7 +45,7 @@ def get_round_id(name):
     r = int(name.split('_')[1][-1])
     return r
 
-def get_ch_id(name):
+def get_ch_id(name, ch_map):
     # Note! Maybe this should come from some JSON with experiment metadata!
     return [ch_map[flcr] for flcr in ch_map if flcr in name][0]
 
@@ -66,8 +75,8 @@ def get_tile_coordinates(tile_size: int, image_shape) -> None:
     return tile_coordinates
 
 
-def tile_image(image, image_name, tile_size, img_type, output_dir,
-              tile_coordinates):
+def tile_image(image, image_name, tile_size, img_type,
+              tile_coordinates, channel_map):
 
     coordinates = []
     for tile_id in tile_coordinates:
@@ -79,12 +88,11 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
         r = 0 if 'anchor' in img_type \
             else get_round_id(image_name)
 
-        c = get_ch_id(image_name) \
+        c = get_ch_id(image_name, channel_map) \
             if img_type in ['primary'] else 0
 
         file_name = f'{img_type}-f{tile_id}-r{r}-c{c}-z0.tiff'
-        #tiff.imsave(os.path.join(output_dir, file_name), tile) Original Nima
-        tiff.imsave(os.path.join(output_dir, file_name), tile)
+        tiff.imsave(file_name, tile)
         
         coordinates.append([
             tile_id, r, c, 0,
@@ -93,7 +101,7 @@ def tile_image(image, image_name, tile_size, img_type, output_dir,
 
     write_coords_file(
 	    coordinates,
-            os.path.join(output_dir, f'coordinates-r{r}-c{c}-z0.csv')) 
+            f'coordinates-r{r}-c{c}-z0.csv')
 
     return coordinates
 
@@ -105,7 +113,8 @@ def write_coords_file(coordinates, file_path) -> None:
                  'xc_max', 'yc_max', 'zc_max'))
     coords_df.to_csv(file_path, index=False)
 
-def tile_images(image_path, tile_size, output) -> None:
+def tile_images(image_path, tile_size, exp_metadata) -> None:
+    ch_map = get_ch_map(exp_metadata)
     
     image = tiff.memmap(image_path)
     image_shape = image.shape
@@ -119,18 +128,15 @@ def tile_images(image_path, tile_size, output) -> None:
         img_type = 'anchor_nuclei'
     else:
         img_type = 'primary'
-        
-    
-    #output = os.path.join(output, img_type)
 
     #if img_type != 'nuclei':
         #os.makedirs(img_type)
-    tile_coordinates = get_tile_coordinates(tile_size, image_shape)
+    tile_coordinates = get_tile_coordinates(int(tile_size), image_shape)
     
-    coordinates = tile_image(image, image_name, tile_size, img_type, output,
-                                tile_coordinates)
-            
-        
+    coordinates = tile_image(image, image_name, tile_size, img_type,
+                                tile_coordinates, ch_map)
+
+
 if __name__ == "__main__":
     cli = {
         "run_tiling": tile_images

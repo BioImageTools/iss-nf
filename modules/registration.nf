@@ -1,15 +1,15 @@
 pythonScript = "${workflow.projectDir}/bin/registration.py"
 
-
 process LEARN_TRANSFORM {
-    publishDir "Transformations", mode: 'copy', overwrite: true
+    //publishDir "Transformations", mode: 'copy', overwrite: true
     //debug true
+    label 'learn_registration'
 
     input:
     tuple val(roundID), path(inputMovImagePath)
     path(fixImagePath)
-    path(txt_combined)
-    //path(param_file)
+    val(rescale_factor)
+    path(param_files)
     //tuple val(roundID), path(inputMovImagePath)
 
     output:
@@ -20,35 +20,37 @@ process LEARN_TRANSFORM {
 
     script:
     """
-    python ${pythonScript} run_learn $fixImagePath ${inputMovImagePath} $txt_combined 
+    python ${pythonScript} run_learn $fixImagePath $inputMovImagePath $rescale_factor $param_files
     """
 }
 
 process APPLY_TRANSFORM {
-    publishDir "Registered", mode: 'copy', overwrite: true
+    //publishDir "Registered", mode: 'copy', overwrite: true
     //debug true
+    label 'apply_registration'
 
     input:
     tuple val(roundID), path(transformPath), path(movingImagePath)
 
     output:
-    tuple val(roundID), path("*.tiff")
+    tuple val(roundID), path("*.tif*")
 
     script:
     """
-    python ${pythonScript} run_apply $transformPath $movingImagePath
+    python ${pythonScript} run_apply $movingImagePath $transformPath
     """
 }
 
 process NORMALIZE {
-    publishDir "Normalized", mode: 'copy', overwrite: true
+    //publishDir "Normalized", mode: 'copy', overwrite: true
     //debug true
+    label 'learn_registration'
 
     input:
     tuple val(sampleID), path(imagePath)
 
     output:
-    tuple val(sampleID), path("*.tiff")
+    tuple val(sampleID), path("*.tif*")
 
     script:
     """

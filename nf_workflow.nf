@@ -14,6 +14,8 @@ include { TILE_PICKER } from './modules/tile_picker.nf'
 include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
 include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 include { DECODER_QC } from './modules/decoder_qc.nf'
+include { MERGE_HTML } from './modules/merge_html.nf'
+
 
 
 def filter_channel(image_id) {
@@ -28,40 +30,25 @@ def filter_channel(image_id) {
     }
 }
 
-process JOIN_COORDINATES {
-    //publishDir "JoinedCoords", mode: "copy", overwrite: true
-    //debug true
-
-    input:
-    tuple val(image_type), path(x)
-
-    output:
-    //stdout
-    tuple val(image_type), file("*.csv")
-
-    script:
-    """
-    python ${workflow.projectDir}/bin/join_coordinates.py join $x
-    """
-}
 
 workflow {
-    // Create tuple with round ID and channels to Register:
+
+
+
+    // Define tuple of round ID and file path for moving images:
     movingLearn_ch = Channel
         .fromPath(params.inputMovImagesLearnPath)
         .map{ f ->
             sampleID = f.baseName
             return [sampleID[0,1], f]
-         }
-         
-     // Combine the elastix parameter files
-     txt_files = Channel.fromPath("${params.elastix_parameter_files}/*.txt")
-     txt_combined = txt_files.flatten().toList()
-     //txt_combined.view()
-
-    // Learn transformations and save TXT files with output:
-    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, txt_combined)
-
+            }
+    // Learn transformations and save TXT files with output;
+    // Make parameter metadata channel:
+    params_reg_ch = Channel.fromPath(params.elastix_parameter_files)
+        .toSortedList()
+    learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
+    learnTransformation_ch.view()
+    
     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
         .fromPath(params.movingImagesApplyPath)
@@ -75,25 +62,22 @@ workflow {
 
     renamed_registered_out_ch = registered_out_ch
         .map{it -> [it[1].baseName, it[1]]}
-    //renamed_registered_out_ch.view()
-
+    
     // Normalized the missing images:
     missing_round = Channel
         .fromPath(params.inputUntransformedImagesPath)
         .map { it ->
             [it.baseName, it]
         }
-
     missing_round_norm = NORMALIZE(missing_round)
     merged_channel = missing_round_norm.mix(renamed_registered_out_ch)
-
-    // Make function to redefine sampleID:
-
-    // Use function 'filter_channel' to change 'merged_channel' ids:
+/*
+    // Use function 'filter_channel' to change 'merged_channel' id's and
+    // identify path by image type (primary, nuclei, etc). 
     redefined_merged_ch = merged_channel
         .map { it ->
             [filter_channel(it[0]), it[1]]}
-    //redefined_merged_ch.view()
+        // .view()
 
     dapis_path = registered_out_ch
         .map{it -> it[1]}
@@ -103,9 +87,27 @@ workflow {
 
     reg_html = REGISTER_QC(nuclei_path, dapis_path)
  
+    // Estimate tile size based on the registered anchor image:
+    tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
+    tilel_htm = tile_metadata_ch[2]
+    // tilel_htm.view()
+    size_ch = tile_metadata_ch[1]
+        .splitText()
+
+    total_fovs_ch = tile_metadata_ch[0]
+        .splitText()
+        .map{
+            it -> it.replaceAll("\\s", "")
+        }
+ 
+    // Add tile size as third argument for the input:
+    redefined_merged_ch_tile = redefined_merged_ch
+        .combine(size_ch)
+        .combine(Channel.fromPath(params.ExpMetaJSON))
+        .view()
+
     // TILING PART:
-    tiled_ch = TILING(redefined_merged_ch)
-    //tiled_ch[0].view()
+    tiled_ch = TILING(redefined_merged_ch_tile)
 
     // To do: merge 'coordinates-fov*'
     joined_coords_ch = tiled_ch[1].groupTuple()
@@ -157,29 +159,16 @@ workflow {
     //        .view()
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.08
-    def max_thr = 0.1
-    def n_vals = 2 //10
+    def min_thr = 0.001
+    def max_thr = 0.01
+    def n_vals = 10
 
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
 
-    all_thresholds = Channel.of(thresholds)
-                     .flatten()
+    // all_thresholds = Channel.of(thresholds)
+    //                  .flatten()
     //                .view()
-       
-    // Estimate tile size based on the registered anchor image:
-    tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
-    html_tile = tile_metadata_ch[2]
-    html_tile.view()
-    size_ch = tile_metadata_ch[1]
-        .splitText()
-
-    total_fovs_ch = tile_metadata_ch[0]
-        .splitText()
-        .map{
-            it -> it.replaceAll("\\s", "")
-        }
         
     merge_tiles_thresh = tiles.combine(thresholds)//.view()
     merge_tiles_thresh_tile = merge_tiles_thresh.map{
@@ -215,5 +204,10 @@ workflow {
      ) 
     postcode_csv = postcode_results.view()
 
-    decoder_html = DECODER_QC(postcode_csv)
+    decoder_html = DECODER_QC(postcode_csv) 
+    
+    // Concatenate HTML files from all processes
+    ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html)
+    MERGE_HTML(ch_all_html_files)
+    */
 }

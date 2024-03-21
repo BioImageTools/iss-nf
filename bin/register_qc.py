@@ -102,7 +102,7 @@ def reg_qc_plot(nuclei_dir, dapis_path):
     </body>
     </html>
     """
-    output_html_path = os.path.join(qc_path, "reg_qc.html")
+    output_html_path = os.path.join(qc_path, "0-reg_qc.html")
     with open(output_html_path, 'w') as f:
         f.write(html_content)
     
