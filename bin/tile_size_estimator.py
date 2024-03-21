@@ -36,7 +36,7 @@ def plot_tile_grid(image, tileSize):
     </body>
     </html>
     """
-    output_html_path = os.path.join(qc_path, "tileSize_qc.html")
+    output_html_path = os.path.join(qc_path, "1-tileSize_qc.html")
     with open(output_html_path, 'w') as f:
         f.write(html_content)
     
