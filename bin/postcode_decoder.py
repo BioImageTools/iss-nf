@@ -5,7 +5,7 @@ import fire
 import exp_metadata_json as exp_meta
 from starfish import Codebook
 import postcode.decoding_functions as post_decfunc
-
+import pandas as pd
 
 def postcode_decoder(
     exp_metadata_json,
@@ -46,7 +46,48 @@ def postcode_decoder(
     
         postcode_decoded_df = post_decfunc.decoding_output_to_dataframe(
             out, df_class_names, df_class_names)
-        postcode_decoded_df.to_csv('postcode_output.csv', index=False)
+        ##############################
+        prob_threshold = 0.7
+        empty_barcodes = [
+            'ABCA1', 'CDKN1A', 'CYP51A1', 'DHCR24',
+            'FDFT1', 'HMGCR', 'HMMR','INSIG1',
+            'LDLR', 'LIF', 'MYLIP', 'PIF1',
+            'PLK1', 'SCD5', 'ACTB', 'GAPDH'
+        ]
+
+        spot_table = pd.DataFrame()
+
+        spot_table['target_postcode'] = postcode_decoded_df.Name.values
+        spot_table['postcode_probability'] = postcode_decoded_df.Probability.values
+
+        spot_table['passes_thresholds_postcode'] = True
+        non_decoded = ['infeasible', 'background', 'nan']
+        spot_table.loc[
+            spot_table['target_postcode'].isin(non_decoded),
+            'passes_thresholds_postcode'] = False
+        spot_table.loc[
+            spot_table['target_postcode'].isna(),
+            'passes_thresholds_postcode'] = False
+        spot_table.loc[
+            spot_table['postcode_probability'] <= prob_threshold,
+            'passes_thresholds_postcode'] = False
+
+        if empty_barcodes is not None:
+            if 'passes_thresholds_postcode' in spot_table:
+                spot_table['decoded_spots'] = spot_table[
+                    'passes_thresholds_postcode']
+                spot_table.loc[
+                    spot_table['target_postcode'].isin(empty_barcodes),
+                    'decoded_spots'] = False
+            else:
+                spot_table['decoded_spots'] = spot_table[
+                    'passes_thresholds']
+                spot_table.loc[
+                    spot_table['target'].isin(empty_barcodes),
+                    'decoded_spots'] = False
+        spot_table.to_csv('postcode_output.csv', index=False)
+        ###############################
+        # postcode_decoded_df.to_csv('postcode_output.csv', index=False)
         
     except:
         with open('postcode_decoding.csv', 'w+') as fh:
