@@ -5,14 +5,13 @@ process REGISTER_QC {
     //debug true
 
     input:
-    path(nuclei_path)
-    path(dapis_path)
+    path(regImg_path)
 
     output:
-    path("reg_qc.html")
+    path("0-reg_qc.html")
 
     script:
     """
-    python ${pythonScript} $nuclei_path $dapis_path
+    python ${pythonScript} $regImg_path
     """
 }
