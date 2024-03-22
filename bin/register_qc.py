@@ -30,14 +30,12 @@ def reg_qc_plot(regImg_path):
     region_size=100
     dapis = []
     for file in regImg_path:
-        if file.endswith('_DAPI.tif'):
+        if file.endswith('_DAPI.tiff') or file.endswith('_DAPI.tif'):
             dapis.append(file)
-        if file.endswith('_nuclei.tif'):
+        if file.endswith('_nuclei.tiff') or file.endswith('_nuclei.tif'):
             nuclei_dir = file
-            print(nuclei_dir, 'wwwwwwwwwwwwwwwwwwwwwwwwwwwwww')
 
-    ref_path = glob.glob(nuclei_dir)[0]
-    ref = tif.memmap(ref_path)
+    ref = tif.memmap(nuclei_dir)
     ref = rescale_image(ref)
 
     if min(ref.shape) > 1000:
