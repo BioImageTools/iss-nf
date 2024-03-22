@@ -13,6 +13,7 @@ include { SPOT_FINDER as SPOT_FINDER2 } from './modules/decoding.nf'
 include { TILE_PICKER } from './modules/tile_picker.nf'
 include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
 include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
+include { JOIN_COORDINATES } from './modules/join_coords.nf'
 include { DECODER_QC } from './modules/decoder_qc.nf'
 include { MERGE_HTML } from './modules/merge_html.nf'
 
@@ -89,25 +90,27 @@ workflow {
         // .view()
 
     reg_html = REGISTER_QC(regImg_path.combine(anch_path))
-/* 
+ 
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
-    tilel_htm = tile_metadata_ch[2]
-    // tilel_htm.view()
+    tile_html = tile_metadata_ch[2]
     size_ch = tile_metadata_ch[1]
-        .splitText()
+            .map { it ->
+        it.baseName}
+        // .view()
+
+    // To use later for the DECODING_POSTCODE process:
+    // coordinates_csv = tile_metadata_ch[2]
 
     total_fovs_ch = tile_metadata_ch[0]
         .splitText()
-        .map{
-            it -> it.replaceAll("\\s", "")
-        }
+        .map { it -> it.trim() }
  
     // Add tile size as third argument for the input:
     redefined_merged_ch_tile = redefined_merged_ch
         .combine(size_ch)
         .combine(Channel.fromPath(params.ExpMetaJSON))
-        .view()
+        // .view()
 
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch_tile)
@@ -212,5 +215,5 @@ workflow {
     // Concatenate HTML files from all processes
     ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html)
     MERGE_HTML(ch_all_html_files)
-    */
+    
 }

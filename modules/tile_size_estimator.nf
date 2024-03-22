@@ -8,7 +8,7 @@ process TILE_SIZE_ESTIMATOR {
     path(refImage)
 
     output:
-    path("*.txt")
+    path("total_fovs.txt")
     path("*.json")
     path('*.html')
 

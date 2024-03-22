@@ -99,24 +99,20 @@ def estimate_tile_size(image_path: str):
     plot_tile_grid(img, selected_tileSize)
         
     # Save tile size in JSON
-    tile_size_dict = [str(selected_tileSize)]
-    with open('data.json', 'w') as fh:
-        json.dump(tile_size_dict, fh)
+    tile_size_dict = str(selected_tileSize)
+    with open(f'{tile_size_dict}.json', 'w') as fh:
+        fh.writelines(tile_size_dict)
         
     # Save TXT file with all FoVs
     horizontal_tiles = -(-image_shape[0] // selected_tileSize)
     vertical_tiles = -(-image_shape[1] // selected_tileSize)
     total_fovs = horizontal_tiles * vertical_tiles
 
-    #for f in range(total_fovs):
-    #    print(write_fov_name(f))
     with open('total_fovs.txt', "w+") as fh:
         for f in range(total_fovs):
-            #print(write_fov_name(f))
             fh.writelines(write_fov_name(f)+'\n')
-    
-    
-    #tile_images(image_path, selected_tileSize)
+
+    return str(selected_tileSize)
 
 if __name__ == "__main__":
     cli = {

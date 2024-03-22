@@ -1,11 +1,17 @@
 import os
 import fire
+import csv
+import json
 from collections import namedtuple
+from typing import Union
 import exp_metadata_json as exp_meta
+
 import numpy as np
 import tifffile as tiff
 import pandas as pd
-
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from skimage.transform import resize, rescale
 
 # For future changes:
 def get_ch_map(
@@ -114,6 +120,7 @@ def write_coords_file(coordinates, file_path) -> None:
     coords_df.to_csv(file_path, index=False)
 
 def tile_images(image_path, tile_size, exp_metadata) -> None:
+
     ch_map = get_ch_map(exp_metadata)
     
     image = tiff.memmap(image_path)
