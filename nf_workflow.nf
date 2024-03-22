@@ -17,8 +17,6 @@ include { JOIN_COORDINATES } from './modules/join_coords.nf'
 include { DECODER_QC } from './modules/decoder_qc.nf'
 include { MERGE_HTML } from './modules/merge_html.nf'
 
-
-
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
         return 'anchor_dots'
@@ -31,10 +29,7 @@ def filter_channel(image_id) {
     }
 }
 
-
 workflow {
-
-
 
     // Define tuple of round ID and file path for moving images:
     movingLearn_ch = Channel
@@ -77,17 +72,14 @@ workflow {
     redefined_merged_ch = merged_channel
         .map { it ->
             [filter_channel(it[0]), it[1]]}
-        // .view()
 
     regImg_path = registered_out_ch
         .map{it -> [it[1]]}
         .collect()
-        // .view()     
 
     anch_path = missing_round_norm
         .map{it -> [it[1]]}
         .collect()
-        // .view()
 
     reg_html = REGISTER_QC(regImg_path.combine(anch_path))
  
@@ -97,7 +89,6 @@ workflow {
     size_ch = tile_metadata_ch[1]
             .map { it ->
         it.baseName}
-        // .view()
 
     // To use later for the DECODING_POSTCODE process:
     // coordinates_csv = tile_metadata_ch[2]
@@ -110,22 +101,15 @@ workflow {
     redefined_merged_ch_tile = redefined_merged_ch
         .combine(size_ch)
         .combine(Channel.fromPath(params.ExpMetaJSON))
-        // .view()
 
     // TILING PART:
     tiled_ch = TILING(redefined_merged_ch_tile)
 
     // To do: merge 'coordinates-fov*'
     joined_coords_ch = tiled_ch[1].groupTuple()
-    //joined_coords_ch.view()
-    // joined_coords_ch.collect().view()
-    //joined_coords_ch.view()
     
     coords4spacetx = JOIN_COORDINATES(joined_coords_ch)
-    //coords4spacetx.view()
 
-    //collected_tiles = tiled_ch[0].collect()
-    //collected_tiles.view()
     grouped_tiled_images = tiled_ch[0].groupTuple()
     //grouped_tiled_images.view()
     
@@ -136,7 +120,6 @@ workflow {
     
     //grouped_tiled_images_flat.view()
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
-    //grouped_input.view()
     
     spacetx_out = SPACETX(grouped_input)
     // Collect all the output from SpaceTx for feeding the following parts:
@@ -144,7 +127,6 @@ workflow {
         .map {it ->
             it[1]}
         .flatten()
-    //all_spacetx_files.view()
     
     // Join all spacetx files with codebook and experiment JSONs:
     exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
@@ -162,7 +144,6 @@ workflow {
             .map{it ->
                 it[0..6]
                 }
-    //        .view()
     
     // Generate Thresholds but first Define parameters
     def min_thr = 0.001
@@ -172,27 +153,18 @@ workflow {
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
 
-    // all_thresholds = Channel.of(thresholds)
-    //                  .flatten()
-    //                .view()
         
     merge_tiles_thresh = tiles.combine(thresholds)//.view()
     merge_tiles_thresh_tile = merge_tiles_thresh.map{
                     it -> it[0]
-                }//.view()
+
     merge_tiles_thresh_thresh = merge_tiles_thresh.map{
                     it -> it[1]
-                }//.view()
+                }
     
     spots_detected_ch = SPOT_FINDER1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
-    
-    //detected_spots_ch = spots_detected_ch[0].toList()
-    
+        
     starfish_tables = spots_detected_ch[1].toList()
-    // starfish_tables.view()
-    
-    // starfish_thresh = spots_detected_ch[2].toList()
-    // starfish_thresh.view()
         
     picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText()
 
