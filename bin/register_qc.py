@@ -25,14 +25,17 @@ def find_roi(img, size):
 def read_roi_img(img, x_center, y_center, size):
     return img[y_center:y_center+size, x_center:x_center+size]
 
-def reg_qc_plot(nuclei_dir, dapis_path):
+def reg_qc_plot(regImg_path):
     downscale_factor=10
     region_size=100
     dapis = []
-    for file in dapis_path:
+    for file in regImg_path:
         if file.endswith('_DAPI.tif'):
             dapis.append(file)
-    #ref_path = os.path.join(nuclei_dir, '*_nuclei.tif')
+        if file.endswith('_nuclei.tif'):
+            nuclei_dir = file
+            print(nuclei_dir, 'wwwwwwwwwwwwwwwwwwwwwwwwwwwwww')
+
     ref_path = glob.glob(nuclei_dir)[0]
     ref = tif.memmap(ref_path)
     ref = rescale_image(ref)
@@ -44,7 +47,7 @@ def reg_qc_plot(nuclei_dir, dapis_path):
     x_center, y_center = find_roi(ref, region_size)
 
     num_images = len(dapis)
-    num_cols = 4
+    num_cols = len(dapis)
     num_rows = -(-num_images // num_cols)
 
     fig_height = 10 * num_rows
@@ -73,20 +76,17 @@ def reg_qc_plot(nuclei_dir, dapis_path):
 
         ax2.imshow(dapi_roi_img, cmap='gray')
         ax2.set_title(f'DAPI ROI Image {i + 1}')
-
     for i in range(num_images, num_rows * num_cols):
         row_idx = i // num_cols
         col_idx = i % num_cols
         axes[row_idx * 2][col_idx].axis('off')
         axes[row_idx * 2 + 1][col_idx].axis('off')
-
     plt.tight_layout()
     qc_path = os.getcwd()
     output_plot_path = os.path.join(qc_path, "registration_qc_plots.png")
     plt.savefig(output_plot_path, bbox_inches='tight')
     plt.show()
     plt.close() 
-
     with open(output_plot_path, "rb") as image_file:
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
 
@@ -109,9 +109,8 @@ def reg_qc_plot(nuclei_dir, dapis_path):
 
 if __name__ == "__main__":
 
-    num_tiles = (sys.argv[1])
-    input_files = sys.argv[2:]
-    reg_qc_plot(num_tiles, input_files)
+    regImg_path = sys.argv[1:]
+    reg_qc_plot(regImg_path)
     # cli = {
     #     "reg_qc": reg_qc_plot,
     #     }

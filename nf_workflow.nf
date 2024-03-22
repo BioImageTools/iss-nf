@@ -47,7 +47,6 @@ workflow {
     params_reg_ch = Channel.fromPath(params.elastix_parameter_files)
         .toSortedList()
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
-    learnTransformation_ch.view()
     
     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
@@ -71,7 +70,7 @@ workflow {
         }
     missing_round_norm = NORMALIZE(missing_round)
     merged_channel = missing_round_norm.mix(renamed_registered_out_ch)
-/*
+
     // Use function 'filter_channel' to change 'merged_channel' id's and
     // identify path by image type (primary, nuclei, etc). 
     redefined_merged_ch = merged_channel
@@ -79,14 +78,18 @@ workflow {
             [filter_channel(it[0]), it[1]]}
         // .view()
 
-    dapis_path = registered_out_ch
-        .map{it -> it[1]}
-        .toList()
+    regImg_path = registered_out_ch
+        .map{it -> [it[1]]}
+        .collect()
+        // .view()     
 
-    nuclei_path = missing_round_norm.map{it -> it[1]}
+    anch_path = missing_round_norm
+        .map{it -> [it[1]]}
+        .collect()
+        // .view()
 
-    reg_html = REGISTER_QC(nuclei_path, dapis_path)
- 
+    reg_html = REGISTER_QC(regImg_path.combine(anch_path))
+/* 
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
     tilel_htm = tile_metadata_ch[2]
