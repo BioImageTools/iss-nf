@@ -17,6 +17,7 @@ include { JOIN_COORDINATES } from './modules/join_coords.nf'
 include { DECODER_QC } from './modules/decoder_qc.nf'
 include { MERGE_HTML } from './modules/merge_html.nf'
 
+
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
         return 'anchor_dots'
@@ -28,6 +29,7 @@ def filter_channel(image_id) {
         return 'primary'
     }
 }
+
 
 workflow {
 
@@ -111,7 +113,6 @@ workflow {
     coords4spacetx = JOIN_COORDINATES(joined_coords_ch)
 
     grouped_tiled_images = tiled_ch[0].groupTuple()
-    //grouped_tiled_images.view()
     
     // Flatten the files on the tuple:
     grouped_tiled_images_flat = grouped_tiled_images
@@ -149,15 +150,13 @@ workflow {
     def min_thr = 0.001
     def max_thr = 0.01
     def n_vals = 10
-
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
-
         
-    merge_tiles_thresh = tiles.combine(thresholds)//.view()
+    merge_tiles_thresh = tiles.combine(thresholds)
     merge_tiles_thresh_tile = merge_tiles_thresh.map{
                     it -> it[0]
-
+                }
     merge_tiles_thresh_thresh = merge_tiles_thresh.map{
                     it -> it[1]
                 }
