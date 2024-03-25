@@ -169,11 +169,13 @@ workflow {
 
     spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, picked_threshold)
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
+    // sorted_detected_spots_ch.view()
     
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
-    sorted_starfish_tables.view() 
+    // sorted_starfish_tables.view() 
     
-    postcode_input = sorted_detected_spots_ch.join(sorted_starfish_tables)
+    postcode_input = sorted_detected_spots_ch.mix(sorted_starfish_tables)
+            .view()
 
     postcode_results = POSTCODE_DECODER(
         Channel.fromPath(params.ExpMetaJSON),
