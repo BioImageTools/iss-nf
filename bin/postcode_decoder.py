@@ -15,11 +15,24 @@ def postcode_decoder(
     # Parse metadata to get genes and variables used for the results' output
     ExpJsonParser = exp_meta.ExpJsonParser(exp_metadata_json)
     # try maybe with GSK data? -> PoSTcode failing with sample dataset
-    
+    spots = []
+    starfish_decoded = []
     #Get ordered list:
-    totals_fovs = len(args)
-    fovs = [os.path.basename(arg).split('.')[0] for arg in args]
-    spots_numpy = [np.load(spot_matrix) for spot_matrix in args]
+    for arg in args:
+        if arg.endswith(".npy"):
+            spots.append(arg)
+        else:
+            starfish_decoded.append(arg)
+    
+    starfish_decoded_table = pd.DataFrame()
+
+    for spots in enumerate(sorted(starfish_decoded)):
+        fov_spot_table = pd.read_csv(spots)
+        starfish_decoded_table = pd.concat([starfish_decoded_table, fov_spot_table])
+        
+    # totals_fovs = len(args)
+    fovs = [os.path.basename(arg).split('.')[0] for arg in spots]
+    spots_numpy = [np.load(spot_matrix) for spot_matrix in spots]
     spots_s = []
     for fov_name, data_to_trace in zip(fovs, spots_numpy):
         spots_s.append([fov_name,
@@ -85,10 +98,15 @@ def postcode_decoder(
                 spot_table.loc[
                     spot_table['target'].isin(empty_barcodes),
                     'decoded_spots'] = False
-        spot_table.to_csv('postcode_output.csv', index=False)
+        # spot_table.to_csv('postcode_output.csv', index=False)
         ###############################
         # postcode_decoded_df.to_csv('postcode_output.csv', index=False)
-        
+        starfish_decoded_table['Probability'] = spot_table['postcode_probability'] 
+        starfish_decoded_table['target_postcode'] = spot_table['target_postcode']
+        starfish_decoded_table['passes_thresholds_postcode'] = spot_table['passes_thresholds_postcode']
+
+        starfish_decoded_table.to_csv('postcode_starfish_output.csv', index=False)
+
     except:
         with open('postcode_decoding.csv', 'w+') as fh:
             fh.writelines('PoSTcode failed')

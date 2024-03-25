@@ -168,16 +168,17 @@ workflow {
     picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText()
 
     spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, picked_threshold)
-    spots_detected_ch[1].view()
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
     
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
     sorted_starfish_tables.view() 
     
+    postcode_input = sorted_detected_spots_ch.join(sorted_starfish_tables)
+
     postcode_results = POSTCODE_DECODER(
         Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
-        sorted_detected_spots_ch
+        postcode_input.flatten()
      ) 
     postcode_csv = postcode_results.view()
 
@@ -185,6 +186,6 @@ workflow {
     
     // Concatenate HTML files from all processes
     ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html)
-    MERGE_HTML(ch_all_html_files)
+    MERGE_HTML(ch_all_html_files) 
     
 }
