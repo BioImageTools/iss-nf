@@ -104,7 +104,7 @@ def postcode_decoder(
         starfish_decoded_table['Probability'] = spot_table['postcode_probability'] 
         starfish_decoded_table['target_postcode'] = spot_table['target_postcode']
         starfish_decoded_table['passes_thresholds_postcode'] = spot_table['passes_thresholds_postcode']
-
+        starfish_decoded_table['decoded_spots'] = spot_table['decoded_spots']
         starfish_decoded_table.to_csv('postcode_starfish_output.csv', index=False)
 
     except:
