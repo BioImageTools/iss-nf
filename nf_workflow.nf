@@ -167,16 +167,19 @@ workflow {
         
     picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText()
 
-    spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, picked_threshold)
-    sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
+    fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
+
+    only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
+    spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, only_thr_ch)
+    sorted_detected_spots_ch = spots_detected_ch[0] //.toSortedList()
     // sorted_detected_spots_ch.view()
-    
-    sorted_starfish_tables = spots_detected_ch[1].toSortedList()
+
+    sorted_starfish_tables = spots_detected_ch[1] //.toSortedList()
     // sorted_starfish_tables.view() 
     
-    postcode_input = sorted_detected_spots_ch.mix(sorted_starfish_tables)
-            .view()
-
+    postcode_input = sorted_detected_spots_ch.concat(sorted_starfish_tables)
+            //  .view()
+    
     postcode_results = POSTCODE_DECODER(
         Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
