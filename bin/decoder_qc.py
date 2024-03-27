@@ -271,25 +271,19 @@ def decoder_qc(table):
 
     ########################################################
     
-    dff = df[df['passes_thresholds_postcode']==True].set_index('target_postcode')
+    dff = df[df['passes_thresholds_postcode'] == True].set_index('target_postcode')
     dff = dff.groupby(dff.index).count().sort_values('xc', ascending=False)
 
     empty_barcode_counts = dff[dff.index.isin(empty_barcodes)]
     df = empty_barcode_counts.iloc[:, 0:1].rename(columns={empty_barcode_counts.columns[0]: 'Spot count'})
-    cmap = plt.get_cmap('magma')
 
     plt.figure(figsize=(10, 8))
-    bars = plt.barh(df.index, df['Spot count'], color=cmap(np.linspace(0, 1, len(df))))  
+    bars = plt.barh(df.index, df['Spot count'], color='#FF7F50')  # Set color to orange
     plt.xlabel('Spot count')
     plt.ylabel('Empty barcodes')
     plt.title('Spot counts for Empty Barcodes')
-    plt.gca().invert_yaxis()  
+    plt.gca().invert_yaxis()
 
-    sm = plt.cm.ScalarMappable(cmap=cmap)
-    sm.set_array([])
-    cbar = plt.colorbar(sm, ticks=np.linspace(0, 1, len(df)))
-    cbar.set_label('Color')
-    
     plt.tight_layout()
     plt.savefig('6-spot_counts_empty_barcodes.png')
     plt.close()
