@@ -178,12 +178,12 @@ workflow {
     // sorted_starfish_tables.view() 
     
     postcode_input = sorted_detected_spots_ch.concat(sorted_starfish_tables)
-            //  .view()
+        .toSortedList()
     
     postcode_results = POSTCODE_DECODER(
         Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
-        postcode_input.flatten()
+        postcode_input
      ) 
     postcode_csv = postcode_results.view()
 
