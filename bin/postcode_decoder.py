@@ -2,10 +2,12 @@
 import numpy as np
 import os
 import fire
-import exp_metadata_json as exp_meta
+from exp_metadata_json import create_exp_json
 from starfish import Codebook
 import postcode.decoding_functions as post_decfunc
 import pandas as pd
+import sys
+
 
 def postcode_decoder(
     exp_metadata_json,
@@ -13,7 +15,7 @@ def postcode_decoder(
     *args
 ):
     # Parse metadata to get genes and variables used for the results' output
-    ExpJsonParser = exp_meta.ExpJsonParser(exp_metadata_json)
+    ExpJsonParser = create_exp_json(exp_metadata_json)
     # try maybe with GSK data? -> PoSTcode failing with sample dataset
     spots = []
     starfish_decoded = []
@@ -23,21 +25,20 @@ def postcode_decoder(
             spots.append(arg)
         else:
             starfish_decoded.append(arg)
-    
+
     starfish_decoded_table = pd.DataFrame()
 
-    for spots in enumerate(sorted(starfish_decoded)):
-        fov_spot_table = pd.read_csv(spots)
+    for decoded_spots in sorted(starfish_decoded):
+        fov_spot_table = pd.read_csv(decoded_spots)
         starfish_decoded_table = pd.concat([starfish_decoded_table, fov_spot_table])
-        
-    # totals_fovs = len(args)
+
     fovs = [os.path.basename(arg).split('.')[0] for arg in spots]
     spots_numpy = [np.load(spot_matrix) for spot_matrix in spots]
     spots_s = []
     for fov_name, data_to_trace in zip(fovs, spots_numpy):
         spots_s.append([fov_name,
-                       np.swapaxes(data_to_trace.data, 1, 2)])
-    
+                        np.swapaxes(data_to_trace.data, 1, 2)])
+
     # Original to change:
     #data_to_trace = build_spot_traces_exact_match(spots[f'fov_{test_tile_idx[0]}'])
     #    spots_s.append([f'fov_{test_tile_idx[0]}', np.swapaxes(data_to_trace.data, 1, 2)])
@@ -45,7 +46,7 @@ def postcode_decoder(
     spots_s = list(sorted(spots_s, key=lambda x:x[0]))
     spots_s = [spots_s[i][1] for i in range(len(spots_s))]
     spots_s = np.concatenate(spots_s, axis=0)
-    
+
     #experiment = Experiment.from_json(json_path)
     codebook = Codebook()
     codebook = codebook.open_json(codebook_json)
@@ -55,8 +56,8 @@ def postcode_decoder(
             spots_s, barcodes_01, print_training_progress=False)
         df_class_names = np.concatenate(
             (codebook.target.values,
-             ['infeasible','background','nan']))
-    
+                ['infeasible','background','nan']))
+
         postcode_decoded_df = post_decfunc.decoding_output_to_dataframe(
             out, df_class_names, df_class_names)
         ##############################
@@ -98,9 +99,8 @@ def postcode_decoder(
                 spot_table.loc[
                     spot_table['target'].isin(empty_barcodes),
                     'decoded_spots'] = False
-        # spot_table.to_csv('postcode_output.csv', index=False)
-        ###############################
-        # postcode_decoded_df.to_csv('postcode_output.csv', index=False)
+
+
         starfish_decoded_table['Probability'] = spot_table['postcode_probability'] 
         starfish_decoded_table['target_postcode'] = spot_table['target_postcode']
         starfish_decoded_table['passes_thresholds_postcode'] = spot_table['passes_thresholds_postcode']
@@ -110,10 +110,15 @@ def postcode_decoder(
     except:
         with open('postcode_decoding.csv', 'w+') as fh:
             fh.writelines('PoSTcode failed')
-    
+
     #return postcode_decoded_df
     
 if __name__ == "__main__":
+   
+    # exp_meta_json = sys.argv[1]
+    # codebook_json = sys.argv[2]
+    # postcode_input = sys.argv[3]
+    # postcode_decoder(exp_meta_json, codebook_json, postcode_input)
     cli = {
         "run": postcode_decoder
     }

@@ -7,7 +7,7 @@ process TILE_PICKER {
     val(n_tilePicker)
 
     output:
-    tuple path('*.txt')
+    path('*.txt')
         
     script:
     """

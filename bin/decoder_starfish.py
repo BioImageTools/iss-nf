@@ -78,7 +78,6 @@ def process_fov(
     fov_name,
     threshold,
 ):
-    print('sssssssssssssss', fov_name, threshold)
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
