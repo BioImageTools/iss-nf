@@ -8,7 +8,7 @@ process DECODER_QC {
     path(postcode_csv)
 
     output:
-    path("decoding_plots.html")
+    path("3-decoding_plots.html")
 
     script:
     """
