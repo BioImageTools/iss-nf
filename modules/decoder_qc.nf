@@ -1,4 +1,6 @@
-pythonScript = "${workflow.projectDir}/bin/decoder_qc.py"
+//pythonScript = "${workflow.projectDir}/bin/decoder_qc.py"
+pythonScript = "${workflow.projectDir}/bin/decoder_qc_interactive.py"
+
 
 process DECODER_QC {
     //debug true
@@ -8,7 +10,7 @@ process DECODER_QC {
     path(postcode_csv)
 
     output:
-    path("3-decoding_plots.html")
+    path("decoding_plots.html")
 
     script:
     """

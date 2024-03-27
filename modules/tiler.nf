@@ -1,7 +1,7 @@
 pythonScript = "${workflow.projectDir}/bin/tiler.py"
 
 process TILING {
-    publishDir "Tiled", mode: 'copy', overwrite: true
+    //publishDir "Tiled", mode: 'copy', overwrite: true
     //debug true
     label 'tiler'
 

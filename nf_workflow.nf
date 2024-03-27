@@ -30,7 +30,6 @@ def filter_channel(image_id) {
     }
 }
 
-
 workflow {
 
     // Define tuple of round ID and file path for moving images:
@@ -171,11 +170,9 @@ workflow {
 
     only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
     spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, only_thr_ch)
-    sorted_detected_spots_ch = spots_detected_ch[0] //.toSortedList()
-    // sorted_detected_spots_ch.view()
+    sorted_detected_spots_ch = spots_detected_ch[0] 
 
-    sorted_starfish_tables = spots_detected_ch[1] //.toSortedList()
-    // sorted_starfish_tables.view() 
+    sorted_starfish_tables = spots_detected_ch[1] 
     
     postcode_input = sorted_detected_spots_ch.concat(sorted_starfish_tables)
         .toSortedList()
