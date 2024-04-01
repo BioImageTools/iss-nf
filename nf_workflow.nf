@@ -169,7 +169,11 @@ workflow {
 
     picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText().map{ it -> it.trim()}
 
-    spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, picked_threshold)
+    fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
+    only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
+
+    spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, only_thr_ch)
+
     //spots_detected_ch[1].view()
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
     
