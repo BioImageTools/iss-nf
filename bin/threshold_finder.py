@@ -97,52 +97,50 @@ def get_fdr(empties, total, n_gene_panel=242, n_emptyBarcodes=16):
 
 
 def auto_threshold(*args):
-    df_general = pd.DataFrame(columns=['threshold', '#Detected', '#Decoded', 'Percent', 'FDR'])
-
-    for path in args:
         
-        components = path.split('/')
-        filename = components[-1]
-        fov_name = path.split('-')[0]
-        last_part = path.split('-')[-2]
-        threshold = float(last_part)
-        #threshold = float(last_part[:-4])
-        #decimal_value = len(path)
-        #threshold_str = float(path.split('-')[1])
-        #threshold = threshold_str * 10**(-decimal_value)
+
+        df_general = pd.DataFrame(columns=['threshold', '#Detected', '#Decoded', 'Percent', 'FDR'])
+
+        for path in args:
+            
+            components = path.split('/')
+            filename = components[-1]
+            fov_name = filename.split('-')[0]
+            last_part = filename.split('-')[-1]
+            threshold = float(last_part[:-4])
+
+            df = pd.read_csv(path)
+
+            filtered_df = df[df['passes_thresholds']==True]
+            filtered_df = filtered_df[~filtered_df['target'].isin(empty_barcodes)]
+            filtered_df = filtered_df[~filtered_df['target'].isin(remove_genes)]
+            filtered_df = filtered_df[~filtered_df['target'].isin(invalid_codes)]
+
+            total_filtered_count = len(filtered_df)
+            empty_barcodes_count = df[df['target'].isin(empty_barcodes)].shape[0]
+            invalid_codes_count = df[df['target'].isin(invalid_codes)].shape[0]
+
+            df_general = df_general.append({'threshold': threshold,
+                        '#Detected': len(df),
+                        '#Decoded': total_filtered_count,
+                        'Percent': total_filtered_count/len(df) * 100,
+                        'FDR': get_fdr(empty_barcodes_count, len(df))}, ignore_index=True)
         
-        df = pd.read_csv(path)
+        thresholds = df_general['threshold']
+        detected_spots = df_general['#Detected']
+        decoded_spots = df_general['#Decoded']
+        false_discovery_rates = df_general['FDR']
 
-        filtered_df = df[df['passes_thresholds']==True]
-        filtered_df = filtered_df[~filtered_df['target'].isin(empty_barcodes)]
-        filtered_df = filtered_df[~filtered_df['target'].isin(remove_genes)]
-        filtered_df = filtered_df[~filtered_df['target'].isin(invalid_codes)]
+        arr = [
+            select_best_threshold1(thresholds, detected_spots, decoded_spots, false_discovery_rates),
+            select_best_threshold2(thresholds, detected_spots, decoded_spots, false_discovery_rates),
+            select_best_threshold3(thresholds, detected_spots, decoded_spots, false_discovery_rates),
+            select_best_threshold4(thresholds, detected_spots, decoded_spots, false_discovery_rates),
+        ]
 
-        total_filtered_count = len(filtered_df)
-        empty_barcodes_count = df[df['target'].isin(empty_barcodes)].shape[0]
-        invalid_codes_count = df[df['target'].isin(invalid_codes)].shape[0]
-
-        df_general = df_general.append({'threshold': threshold,
-                    '#Detected': len(df),
-                    '#Decoded': total_filtered_count,
-                    'Percent': total_filtered_count/len(df) * 100,
-                    'FDR': get_fdr(empty_barcodes_count, len(df))}, ignore_index=True)
-    
-    thresholds = df_general['threshold']
-    detected_spots = df_general['#Detected']
-    decoded_spots = df_general['#Decoded']
-    false_discovery_rates = df_general['FDR']
-
-    arr = [
-        select_best_threshold1(thresholds, detected_spots, decoded_spots, false_discovery_rates),
-        select_best_threshold2(thresholds, detected_spots, decoded_spots, false_discovery_rates),
-        select_best_threshold3(thresholds, detected_spots, decoded_spots, false_discovery_rates),
-        select_best_threshold4(thresholds, detected_spots, decoded_spots, false_discovery_rates),
-    ]
-
-    with open('picked_threshold.txt', 'w') as file:
-            file.write(str(mode_first(arr)))
-    
+        with open('picked_threshold.txt', 'w') as file:
+                file.write(str(mode_first(arr)))
+        
     
 if __name__ == "__main__":
     

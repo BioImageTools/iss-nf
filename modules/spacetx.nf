@@ -3,6 +3,9 @@ pythonScript = "${workflow.projectDir}/bin/spacetx.py"
 process SPACETX {
     label 'beast'
 
+    //debug true
+    label 'beast'
+    
     input:
     tuple val(imageType), path('*'), path(coords)
     //file coordinates from params.imageDir
