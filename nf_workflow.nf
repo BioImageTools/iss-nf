@@ -45,7 +45,7 @@ workflow {
         .toSortedList()
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
     
-    // Define the channel with data for which to apply found transformations:
+/*     // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
         .fromPath(params.movingImagesApplyPath)
         .map { it -> 
@@ -188,6 +188,6 @@ workflow {
     
     // Concatenate HTML files from all processes
     ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html)
-    MERGE_HTML(ch_all_html_files) 
+    MERGE_HTML(ch_all_html_files)  */
     
 }
