@@ -1,7 +1,7 @@
 pythonScript = "${workflow.projectDir}/bin/exp_metadata_json.py"
 
 process MAKE_EXP_JSON {
-    debug true
+    //debug true
     label 'minimal'
 
     input:

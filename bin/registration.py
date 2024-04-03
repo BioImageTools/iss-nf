@@ -16,7 +16,7 @@ def get_image_metadata(img):
 
 def robust_min_max_norm(
     image,
-    max_percentile: bool = 99.9999,
+    max_percentile = 99.9999,
     ) -> np.ndarray:
     """Min-max image normalization robust to brigh pixel outlier.
 

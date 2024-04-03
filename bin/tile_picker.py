@@ -39,3 +39,6 @@ if __name__ == "__main__":
         "tile_picker": tile_picker
     }
     fire.Fire(cli)
+
+
+

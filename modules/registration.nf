@@ -33,7 +33,7 @@ process APPLY_TRANSFORM {
     tuple val(roundID), path(transformPath), path(movingImagePath)
 
     output:
-    tuple val(roundID), path("*.tiff")
+    tuple val(roundID), path("*.tif*")
 
     script:
     """
@@ -50,7 +50,7 @@ process NORMALIZE {
     tuple val(sampleID), path(imagePath)
 
     output:
-    tuple val(sampleID), path("*.tiff")
+    tuple val(sampleID), path("*.tif*")
 
     script:
     """

@@ -1,6 +1,4 @@
 import fire
-import pickle
-import os
 import numpy as np
 from registration import *
 from starfish.spots import DecodeSpots
@@ -33,7 +31,7 @@ def register(
 def find_spots(
     image_stack: ImageStack, 
     reference_stack: ImageStack,
-    threshold: float = 0.003
+    thresh,
 ) -> SpotFindingResults:
     """Detect spots using laplacian of gaussians approach."""
     bd = FindSpots.BlobDetector(
@@ -41,6 +39,7 @@ def find_spots(
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,
+                threshold=thresh,
                 is_volume=False,
                 measurement_type='mean')
     dots_max = reference_stack.reduce((Axes.ROUND, Axes.ZPLANE),
@@ -109,8 +108,7 @@ def process_fov(
     filtered_imgs = primary#_registered
 
     spots = find_spots(image_stack=filtered_imgs,
-                       reference_stack=filtered_ref,
-                       threshold=threshold)
+                       reference_stack=filtered_ref, thresh=threshold)
 
     #decoded = decode(spots, exp)
     
@@ -119,7 +117,7 @@ def process_fov(
     np.save(f'{fov_name}.npy', spots4postcode)
     # Do starfish decoding already in here:
     decoded = decode(spots, exp)
-    decoded.to_features_dataframe().to_csv(f"{fov_name}-{str(threshold)}-starfish_results.csv", index=False)
+    decoded.to_features_dataframe().to_csv(f'{fov_name}-starfish_results-{threshold}.csv', index=False)
 
 
 if __name__ == "__main__":

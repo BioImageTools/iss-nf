@@ -1,6 +1,4 @@
-import os
 import fire
-import csv
 from slicedimage import ImageFormat
 from starfish.experiment.builder import format_structured_dataset
          
