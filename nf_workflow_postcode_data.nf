@@ -18,7 +18,7 @@ def filter_channel(image_id) {
         return 'anchor_dots'
     } else if (image_id.contains('anchor_nuclei')) {
         return 'anchor_nuclei'
-    } else if (image_id.contains('_DAPI')) {
+    } else if (image_id.contains('nuclei')) {
         return 'nuclei'
     } else {
         return 'primary'
@@ -29,7 +29,7 @@ def filter_channel(image_id) {
 //}
 
 workflow {
-
+    /*
     // Define tuple of round ID and file path for moving images:
     movingLearnReg_ch = Channel
         .fromPath(params.inputMovImagesLearnPath)
@@ -109,9 +109,30 @@ workflow {
 
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
     //grouped_input.view()
+    */
+
+    // TEST POSTCODE DATA DOWN HERE:
+    // Create coordinates channel tuple for all channel types:
+    coords_ch = Channel.fromPath(params.primary_coords)//.map { it -> ['primary', it]}
+
+    all_channel_type_coords = coords_ch.map { it -> [filter_channel(it.baseName), it]}
+    //all_channel_type_coords.view()
+
+    // CREATE CHANNEL FOR IMAGES TO COMBINE WITH COORDS:
+    input_tiles_tuple = Channel.fromPath(params.tile_images)
+        .map { it -> [filter_channel(it.baseName), it]}
+    
+    grouped_input = input_tiles_tuple
+        .groupTuple()
+        .combine(all_channel_type_coords, by: 0)
+
+    //grouped_input.view()
+
+
     
     spacetx_out_tuple = SPACETX(grouped_input)
     //spacetx_out_tuple[1].view()
+    
     spacetx_out = spacetx_out_tuple[0]
     // Collect all the output from SpaceTx for feeding the following parts:
     
@@ -122,20 +143,25 @@ workflow {
 
     //redefined_merged_ch_tile.view()
 
+
+
+
+    
     // Join all spacetx files with codebook and experiment JSONs:
     exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
-
+    exp_json_ch.view()
+    
     exp_plus_codebook = Channel.fromPath(params.CodeJSON)
         .mix(exp_json_ch)
 
     tuple_with_all = all_spacetx_files
         .mix(exp_plus_codebook)
         .toList()
-
+    
     //tuple_with_all.view()
     // Automatic threshold detection:
     // Select random tiles:
-    tile_picker = TILE_PICKER(tuple_with_all, Channel.of('5'))
+    tile_picker = TILE_PICKER(tuple_with_all, Channel.of('3'))
     tiles = tile_picker
         .splitText()
         .map{it ->
@@ -158,20 +184,13 @@ workflow {
 
     decoding_results = SPOT_FINDER1(tuple_with_all, only_fov_ch, only_thr_ch)
     starfish_tables = decoding_results[1].toList()
-    //detected_spots_ch = spots_detected_ch[0].toList()
     
-    //starfish_tables = spots_detected_ch[1].toList()
-    //starfish_tables.view()
-    // starfish_tables.view()
-    
-    // starfish_thresh = spots_detected_ch[2].toList()
-    // starfish_thresh.view()
-
     picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText().map{ it -> it.trim()}
-
+    picked_threshold.view()
+    total_fovs_ch = Channel.of('fov_000', 'fov_001', 'fov_002')
     fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
     only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
-
+    
     spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, only_thr_ch)
 
     //spots_detected_ch[1].view()
@@ -185,4 +204,5 @@ workflow {
         Channel.fromPath(params.CodeJSON),
         sorted_detected_spots_ch
     )
+    
 }
