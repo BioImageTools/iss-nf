@@ -6,8 +6,7 @@ process POSTCODE_DECODER {
     input:
     path(exp_meta_json)
     path(codebook_json)
-    path(postcode_input)
-
+    path(starfish_output_files)
     //file coordinates from params.imageDir
 
     output:
@@ -17,6 +16,6 @@ process POSTCODE_DECODER {
 
     script:
     """
-    python ${pythonScript} run $exp_meta_json $codebook_json $postcode_input
+    python ${pythonScript} run $exp_meta_json $codebook_json $starfish_output_files
     """
    }

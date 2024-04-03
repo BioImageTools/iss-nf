@@ -35,6 +35,7 @@ def find_spots(
 ) -> SpotFindingResults:
     """Detect spots using laplacian of gaussians approach."""
     bd = FindSpots.BlobDetector(
+                threshold=threshold,
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,
@@ -75,9 +76,10 @@ def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTab
 
 def process_fov(
     images_dir_path,
-    fov_name,
-    threshold,
+    fov_name: str,
+    threshold: float = 0.003
 ):
+    #exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
