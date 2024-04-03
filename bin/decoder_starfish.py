@@ -86,7 +86,7 @@ def process_fov(
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')
     dapi_rounds = fov.get_image('nuclei')
-    dapi_ref = fov.get_image('anchor_nuclei')
+    #dapi_ref = fov.get_image('anchor_nuclei')
 
     #if normalize:
     #    primary = _normalize(image_stack=primary)
