@@ -35,7 +35,6 @@ def find_spots(
 ) -> SpotFindingResults:
     """Detect spots using laplacian of gaussians approach."""
     bd = FindSpots.BlobDetector(
-                threshold=threshold,
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,

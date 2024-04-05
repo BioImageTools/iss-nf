@@ -136,12 +136,19 @@ def decoder_qc(table):
     ###################################################
     COLORS = plt.rcParams['axes.prop_cycle'].by_key()['color']
     decoding_method = 'postcode'
-
+    """
     gene_colors = {
         'COL1A2': COLORS[5],
         'CD4': COLORS[4],
         'KRT5': COLORS[0],
         'EPCAM': COLORS[0],
+    }
+    """
+    gene_colors = {
+        'Gapdh': COLORS[5],
+        'Penk': COLORS[4],
+        'Plpp4': COLORS[0],
+        'Cux2': COLORS[0],
     }
 
     spots_for_scatter = filter_results(
@@ -300,7 +307,7 @@ def decoder_qc(table):
         label='Housekeepers',
     )
 
-    plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
+    #plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
 
     ax.set_yscale('log')
     ax.set_title('PoSTcode results', fontsize=14)

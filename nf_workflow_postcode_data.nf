@@ -2,6 +2,7 @@
 nextflow.enable.dsl=2
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
+include { REGISTER_QC } from './modules/register_qc.nf'
 include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
 include { TILE_SIZE_ESTIMATOR } from './modules/tile_size_estimator.nf'
 include { TILING } from './modules/tiler.nf'
@@ -12,6 +13,8 @@ include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
 include { SPOT_FINDER as SPOT_FINDER2 } from './modules/decoding.nf'
 include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 include { JOIN_COORDINATES } from './modules/join_coords.nf'
+include { DECODER_QC } from './modules/decoder_qc.nf'
+include { MERGE_HTML } from './modules/merge_html.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -127,8 +130,6 @@ workflow {
         .combine(all_channel_type_coords, by: 0)
 
     //grouped_input.view()
-
-
     
     spacetx_out_tuple = SPACETX(grouped_input)
     //spacetx_out_tuple[1].view()
@@ -143,10 +144,6 @@ workflow {
 
     //redefined_merged_ch_tile.view()
 
-
-
-
-    
     // Join all spacetx files with codebook and experiment JSONs:
     exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
     exp_json_ch.view()
@@ -161,12 +158,13 @@ workflow {
     //tuple_with_all.view()
     // Automatic threshold detection:
     // Select random tiles:
-    tile_picker = TILE_PICKER(tuple_with_all, Channel.of('3'))
+    tile_picker = TILE_PICKER(tuple_with_all, Channel.of('8'))
     tiles = tile_picker
         .splitText()
         .map{it ->
             it[0..6]
             }
+    
     // Generate Thresholds but first Define parameters
     def min_thr = 0.08
     def max_thr = 0.1
@@ -187,7 +185,9 @@ workflow {
     
     picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText().map{ it -> it.trim()}
     picked_threshold.view()
-    total_fovs_ch = Channel.of('fov_000', 'fov_001', 'fov_002')
+    
+    //total_fovs_ch = Channel.of('fov_000', 'fov_001', 'fov_002')
+    total_fovs_ch = Channel.fromPath(params.fovs2decode).splitText().map { it -> it.trim()}
     fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
     only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
     
@@ -197,12 +197,18 @@ workflow {
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
     
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
-    //sorted_starfish_tables.view()
+    all_starfish_output = sorted_detected_spots_ch.concat(sorted_starfish_tables).flatten().toList()
+    //all_starfish_output.view()
     
     postcode_results = POSTCODE_DECODER(
         Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
-        sorted_detected_spots_ch
+        all_starfish_output
     )
+
+    decoder_html = DECODER_QC(postcode_results) 
     
+    // Concatenate HTML files from all processes
+    //ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html)
+    //MERGE_HTML(ch_all_html_files)
 }
