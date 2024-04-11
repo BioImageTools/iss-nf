@@ -3,12 +3,12 @@
 Nextflow workflow for the automated creation of a transcript map from ISS image data.
 
 
-| Producer | Microscope | Stitched | Data location | Execution | Next steps | Issues |
-|----------|----------|----------|----------|----------|----------|----------|
-| Dima, GSK              | VS200   | Yes   | GSK cluster     | Working  |                                            |  PostCODE | 
-| Alvaro, EMBL-Rome      | ?       | Yes   | cba/iss-nf-data | TODO     | OME-Zarr Conversion, OME-Zarr Registration |           | 
-| Jorge, Saka, EMBL-HD   | ?       | Yes   | ?               | TODO     | Find the data                              |           | 
-| PostCODE example       | ?       | No    | ?               | TODO     | Find the data, Stitch it                   |           | 
+| Producer | Microscope | Stitched | Data location | Data public | Execution | Next steps | Issues |
+|----------|----------|----------|----------|----------|----------|----------|----------|
+| Dima, GSK              | VS200   | Yes   | GSK cluster            | No | Working  |                                            |  PostCODE | 
+| Alvaro, EMBL-Rome      | ?       | Yes   | iss-nf-data/alvaro_000 | No | TODO     | [OME-Zarr Conversion](https://git.embl.de/grp-cba/iss-nf/-/issues/3), OME-Zarr Registration |           | 
+| Jorge, Saka, EMBL-HD   | ?       | Yes   | ?                      | No | TODO     | [Find the data](https://git.embl.de/grp-cba/iss-nf/-/issues/2)                              |           | 
+| PostCODE example       | ?       | No    | ?                      | Yes | TODO     | Find the data, Stitch it                   |           | 
 
 
 
