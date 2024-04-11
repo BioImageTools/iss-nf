@@ -4,7 +4,7 @@ Nextflow workflow for the automated creation of a transcript map from ISS image 
 
 
 | Producer | Microscope | Stitched | Data location | Execution | Next steps | Issues |
-|----------|----------|----------|----------|----------|----------|
+|----------|----------|----------|----------|----------|----------|----------|
 | Dima, GSK              | VS200   | Yes   | GSK cluster     | Working  |                                            |  PostCODE | 
 | Alvaro, EMBL-Rome      | ?       | Yes   | cba/iss-nf-data | TODO     | OME-Zarr Conversion, OME-Zarr Registration |           | 
 | Jorge, Saka, EMBL-HD   | ?       | Yes   | ?               | TODO     | Find the data                              |           | 
