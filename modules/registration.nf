@@ -4,7 +4,7 @@ process LEARN_TRANSFORM {
     //publishDir "Transformations", mode: 'copy', overwrite: true
     //debug true
     label 'learn_registration'
-
+    //container '/home/nv066607/python_github_enterprise/iss-nf/reg_container.sif'
     input:
     tuple val(roundID), path(inputMovImagePath)
     path(fixImagePath)

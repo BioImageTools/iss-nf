@@ -6,7 +6,8 @@ import base64
 import matplotlib.pyplot as plt
 
 def plot_tile_grid(image, tileSize):
-    plt.imshow(image, cmap='gray')
+    vmax = np.percentile(image, 98)
+    plt.imshow(image, cmap='gray', vmax=vmax)
     height, width = image.shape[:2]
     
     for i in range(0, width, tileSize):

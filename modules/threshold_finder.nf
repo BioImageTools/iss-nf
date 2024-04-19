@@ -7,6 +7,7 @@ process THRESHOLD_FINDER {
 
     output:
     path('picked_threshold.txt')
+    path("4-thresh_qc.html")
     
     script:
     """

@@ -1,0 +1,6 @@
+ERROR: Cannot find key: ./
+Usage: concat_csv.py <command>
+  available commands:    concat_csv
+
+For detailed information on this command, run:
+  concat_csv.py --help

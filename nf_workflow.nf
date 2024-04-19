@@ -16,6 +16,8 @@ include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 include { JOIN_COORDINATES } from './modules/join_coords.nf'
 include { DECODER_QC } from './modules/decoder_qc.nf'
 include { MERGE_HTML } from './modules/merge_html.nf'
+include { CONCAT_CSV } from './modules/concat_csv.nf'
+include { CONCAT_NPY } from './modules/concat_npy.nf'
 
 
 def filter_channel(image_id) {
@@ -45,7 +47,7 @@ workflow {
         .toSortedList()
     learnTransformation_ch = LEARN_TRANSFORM(movingLearn_ch, params.inputRefImagePath, params.rescale_factor, params_reg_ch)
     
-/*     // Define the channel with data for which to apply found transformations:
+    // Define the channel with data for which to apply found transformations:
     moving_ch = Channel
         .fromPath(params.movingImagesApplyPath)
         .map { it -> 
@@ -146,9 +148,9 @@ workflow {
                 }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.001
+    def min_thr = 0.008
     def max_thr = 0.01
-    def n_vals = 10
+    def n_vals = 3
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
         
@@ -162,32 +164,36 @@ workflow {
     
     spots_detected_ch = SPOT_FINDER1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
         
-    starfish_tables = spots_detected_ch[1].toList()
-        
-    picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText()
+    starfish_tables = spots_detected_ch[1].toList() 
+    threshold_results = THRESHOLD_FINDER(starfish_tables)
+    picked_threshold = threshold_results[0].splitText()
+    picked_threshold_html = threshold_results[1]
 
     fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
 
     only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
     spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, only_thr_ch)
-    sorted_detected_spots_ch = spots_detected_ch[0] 
+    sorted_detected_spots_ch = spots_detected_ch[0].toSortedList() 
 
-    sorted_starfish_tables = spots_detected_ch[1] 
+    sorted_starfish_tables = spots_detected_ch[1].toSortedList()
+    //postCode_input = CONCAT_NPY(sorted_detected_spots_ch)
+    //postCode.view()
+    starfish_table = CONCAT_CSV(sorted_starfish_tables)
     
-    postcode_input = sorted_detected_spots_ch.concat(sorted_starfish_tables)
-        .toSortedList()
-    
-    postcode_results = POSTCODE_DECODER(
-        Channel.fromPath(params.ExpMetaJSON),
-        Channel.fromPath(params.CodeJSON),
-        postcode_input
-     ) 
-    postcode_csv = postcode_results.view()
+    if (params.postCode){
+        postcode_results = POSTCODE_DECODER(
+            Channel.fromPath(params.CodeJSON),
+            starfish_table,
+            sorted_detected_spots_ch
+        ) 
+        postcode_csv = postcode_results.view()
 
-    decoder_html = DECODER_QC(postcode_csv) 
-    
-    // Concatenate HTML files from all processes
-    ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html)
-    MERGE_HTML(ch_all_html_files)  */
-    
+        decoder_html = DECODER_QC(postcode_csv) 
+        
+        // Concatenate HTML files from all processes
+        ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
+        MERGE_HTML(ch_all_html_files) 
+    }else{
+        println "not yet implemented!"
+    }
 }

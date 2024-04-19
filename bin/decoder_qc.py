@@ -197,7 +197,7 @@ def decoder_qc(table):
     scatter_plot(
         ax, spots_for_scatter, gene_cm=gene_colors, x_col='xc', y_col='yc',
         pixel_size=MICROM_PER_PX, despine=True,
-        point_size=0.5, alpha=0.1, 
+        point_size=0.5, #alpha=0.1, 
         others_color='k',  
         legend_loc=legend_location,
         scalebar_loc=scalebar_location,

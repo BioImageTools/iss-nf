@@ -1,22 +1,21 @@
-pythonScript = "${workflow.projectDir}/bin/postcode_decoder.py"
+pythonScript = "${workflow.projectDir}/bin/test_postcode_decoder.py"
 
 process POSTCODE_DECODER {
-    label 'beast'
+    label 'decoding_postcode'
 
     input:
-    path(exp_meta_json)
+    
     path(codebook_json)
+    path(starfish_table)
     path(postcode_input)
 
     //file coordinates from params.imageDir
 
     output:
     path("*.csv")
-    //tuple val(fov_id), path("*.npy")
-    //tuple val(fov_id), path ("*.csv")
 
     script:
     """
-    python ${pythonScript} run $exp_meta_json $codebook_json $postcode_input
+    python ${pythonScript} run $codebook_json $starfish_table $postcode_input
     """
    }

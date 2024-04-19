@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 import fire
+import matplotlib.pyplot as plt
+import os
+import base64
 
 empty_barcodes = [
     'ABCA1', 'CDKN1A', 'CYP51A1', 'DHCR24',
@@ -12,6 +15,50 @@ empty_barcodes = [
 remove_genes = ['IGHA1', 'IGHG1', 'IGHD', 'IGHM']
 
 invalid_codes = ['NaN']
+
+def plot_report(thresholds, false_discovery_rates, decoded_spots, picked_threshold):
+
+    data = {'number_of_decoded': decoded_spots,
+            'thresholds': thresholds,
+            'fdrs': false_discovery_rates}
+    plt.figure(figsize=(10, 8))
+
+    sc = plt.scatter(thresholds, false_discovery_rates, c=decoded_spots,
+                    cmap='viridis', s=np.array(data['number_of_decoded'])*.01)
+
+    cbar = plt.colorbar(sc)
+    cbar.set_label('Number of Decoded')
+
+    plt.title('Scatter Plot of Thresholds vs. FDRs Colored by Number of Decoded')
+    plt.xlabel('Thresholds')
+    plt.ylabel('FDRs')
+    plt.xscale('log')
+    plt.axvline(x=picked_threshold, color='r', ls='--', label=f'Picked threshold - {picked_threshold}')
+    plt.legend()
+    qc_path = os.getcwd()
+    output_plot_path = os.path.join(qc_path, "picked_thresh_plot.png")
+    plt.savefig(output_plot_path, bbox_inches='tight')
+    plt.show()
+    plt.close() 
+
+    with open(output_plot_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+
+    html_content = f"""
+    <html>
+    <head>
+    <title>QC Plot</title>
+    </head>
+    <body>
+    <h1>QC Plot</h1>
+    <p>This plot shows how the threshold is chosen based on the number of decoded vs FDR for all three chosen tiles.</p>
+    <img src="data:image/png;base64,{encoded_string}" alt="QC Plot">
+    </body>
+    </html>
+    """
+    output_html_path = os.path.join(qc_path, "4-thresh_qc.html")
+    with open(output_html_path, 'w') as f:
+        f.write(html_content)
 
 def select_best_threshold1(thresholds, detected_spots, decoded_spots, false_discovery_rates):
 
@@ -65,21 +112,6 @@ def select_best_threshold3(thresholds, detected_spots, decoded_spots, false_disc
     return best_threshold
 
 
-def select_best_threshold4(thresholds, detected_spots, decoded_spots, false_discovery_rates):
-
-    best_score = float('-inf')
-    best_threshold = None
-
-    for i, threshold in enumerate(thresholds):
-        score = detected_spots[i] + decoded_spots[i] - false_discovery_rates[i]
-
-        if score > best_score:
-            best_score = score
-            best_threshold = threshold
-
-    return best_threshold
-
-
 def mode_first(data):
     
     frequency = {}
@@ -99,7 +131,7 @@ def get_fdr(empties, total, n_gene_panel=242, n_emptyBarcodes=16):
 def auto_threshold(*args):
         
 
-        df_general = pd.DataFrame(columns=['threshold', '#Detected', '#Decoded', 'Percent', 'FDR'])
+        df_general = pd.DataFrame(columns=['threshold', '#Detected', '#Decoded', 'Percent', 'FDR', 'Picked_thresh'])
 
         for path in args:
             
@@ -135,11 +167,13 @@ def auto_threshold(*args):
             select_best_threshold1(thresholds, detected_spots, decoded_spots, false_discovery_rates),
             select_best_threshold2(thresholds, detected_spots, decoded_spots, false_discovery_rates),
             select_best_threshold3(thresholds, detected_spots, decoded_spots, false_discovery_rates),
-            select_best_threshold4(thresholds, detected_spots, decoded_spots, false_discovery_rates),
         ]
 
+        picked_threshold = mode_first(arr)
+        plot_report(thresholds, false_discovery_rates, decoded_spots, picked_threshold)
+
         with open('picked_threshold.txt', 'w') as file:
-                file.write(str(mode_first(arr)))
+                file.write(str(picked_threshold))
         
     
 if __name__ == "__main__":
