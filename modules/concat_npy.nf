@@ -2,7 +2,7 @@ pythonScript = "${workflow.projectDir}/bin/concat_npy.py"
 
 process CONCAT_NPY {
     
-    label 'learn_registration'
+    label 'concat'
     
     input:
     path(npy_files)

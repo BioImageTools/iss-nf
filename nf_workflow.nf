@@ -176,24 +176,24 @@ workflow {
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList() 
 
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
-    //postCode_input = CONCAT_NPY(sorted_detected_spots_ch)
-    //postCode.view()
+    postCode_input = CONCAT_NPY(sorted_detected_spots_ch)
+    // postCode.view()
     starfish_table = CONCAT_CSV(sorted_starfish_tables)
     
     if (params.postCode){
         postcode_results = POSTCODE_DECODER(
             Channel.fromPath(params.CodeJSON),
             starfish_table,
-            sorted_detected_spots_ch
+            postCode_input
         ) 
-        postcode_csv = postcode_results.view()
-
+        postcode_csv = postcode_results
         decoder_html = DECODER_QC(postcode_csv) 
         
-        // Concatenate HTML files from all processes
-        ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
-        MERGE_HTML(ch_all_html_files) 
     }else{
-        println "not yet implemented!"
+        decoder_html = DECODER_QC(starfish_table)
     }
+    
+    // Concatenate HTML files from all processes
+    ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
+    MERGE_HTML(ch_all_html_files) 
 }

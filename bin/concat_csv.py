@@ -5,9 +5,7 @@ import sys
 def concat_csv(
     csv_files
 ):           
-    print(csv_files)
     sorted_starfish_decoded = sorted(csv_files)
-    print(sorted_starfish_decoded)
     starfish_decoded_table = pd.DataFrame()
 
     for decoded_spots in sorted_starfish_decoded:

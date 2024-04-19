@@ -14,6 +14,6 @@ process DECODER_QC {
 
     script:
     """
-    python ${pythonScript} $postcode_csv
+    python ${pythonScript} $postcode_csv ${params.postCode}
     """
 }

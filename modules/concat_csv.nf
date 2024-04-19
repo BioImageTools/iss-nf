@@ -2,7 +2,7 @@ pythonScript = "${workflow.projectDir}/bin/concat_csv.py"
 
 process CONCAT_CSV {
     
-    label 'learn_registration'
+    label 'concat'
     
     input:
     path(csv_files)

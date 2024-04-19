@@ -7,15 +7,11 @@ import pandas as pd
 def postcode_decoder(
     codebook_json,
     starfish_decoded_table,
-    *args
+    spots_postcode_input
 ):
     starfish_decoded_table = pd.read_csv(starfish_decoded_table)
-    sorted_spots = sorted(args)
-    spots_numpy = [np.load(spot_matrix) for spot_matrix in sorted_spots]
-    spots_postcode_input = []
-    for data_to_trace in spots_numpy:
-        spots_postcode_input.append(np.swapaxes(data_to_trace.data, 1, 2))
-    spots_postcode_input = np.concatenate(spots_postcode_input, axis=0)
+    spots_postcode_input = np.load(spots_postcode_input)
+    spots_postcode_input = spots_postcode_input['arr_0']
 
     codebook = Codebook()
     codebook = codebook.open_json(codebook_json)
