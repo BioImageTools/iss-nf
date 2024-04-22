@@ -186,8 +186,16 @@ workflow {
             starfish_table,
             postCode_input
         ) 
-        postcode_csv = postcode_results
-        decoder_html = DECODER_QC(postcode_csv) 
+        csv_name = postcode_results.collect {
+            it -> it.baseName
+        }
+        csv_name.view()
+        
+        if (csv_name.contains("postcode_decoding_failed")){
+            decoder_html = DECODER_QC(starfish_table)
+        }else{
+             decoder_html = DECODER_QC(postcode_csv) 
+        }
         
     }else{
         decoder_html = DECODER_QC(starfish_table)

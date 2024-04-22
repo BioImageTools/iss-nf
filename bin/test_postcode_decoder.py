@@ -74,10 +74,8 @@ def postcode_decoder(
         starfish_decoded_table.to_csv('postcode_starfish_output.csv', index=False)
 
     except:
-        with open('postcode_decoding.csv', 'w+') as fh:
+        with open('postcode_decoding_failed.csv', 'w+') as fh:
             fh.writelines('PoSTcode failed: Negative eigenvalues affect the covariance matrix utilized in multivariate normal distribution, requiring it to be positive definite when employed by the PostCode.')
-
-    return postcode_decoded_df
     
 if __name__ == "__main__":
    

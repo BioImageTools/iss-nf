@@ -27,7 +27,15 @@ include { CONCAT_NPY } from './modules/concat_npy.nf'
 workflow {
 
     input_npy = Channel.fromPath('/hpc/scratch/hdd1/nv066607/test-data/*.npy').toSortedList()
-    input_npy.view()
-    CONCAT_NPY(input_npy)
+    //input_npy.view()
+    test = CONCAT_NPY(input_npy)
+    name = test.map { it ->
+            it.baseName
+        }
+    if (name.contains("spots_postcode_input")){
+        println "YES"
+    }else{
+        println "NO"
+    }
 
 }
