@@ -9,7 +9,7 @@ Nextflow workflow for the automated creation of a transcript map from ISS image 
 | Alvaro, EMBL-Rome      | ?       | Yes   | iss-nf-data/alvaro_000 | No | TODO     | [OME-Zarr Conversion](https://git.embl.de/grp-cba/iss-nf/-/issues/3), OME-Zarr Registration |           | 
 | Jorge, Saka, EMBL-HD   | ?       | Yes   | ?                      | No | TODO     | [Find the data](https://git.embl.de/grp-cba/iss-nf/-/issues/2)                              |           | 
 | PostCODE example       | ?       | No    | iss-nf-data/S-BSST700 | Yes | TODO     | Read access to data, [Stitch it](https://git.embl.de/grp-cba/iss-nf/-/issues/7)                   |           | 
-| Muza, EMBL             | Nikon     | Yes  | embl cluster          | No | TODO     |                                            
+| Muza, EMBL             | Nikon Ti2    | Yes  | embl cluster          | No | TODO     |                                            
 
 
 
