@@ -7,13 +7,13 @@ process DECODER_QC {
     label 'long'
 
     input:
-    path(postcode_csv)
+    path(decoded_csv)
 
     output:
     path("decoding_plots.html")
 
     script:
     """
-    python ${pythonScript} $postcode_csv ${params.postCode}
+    python ${pythonScript} $decoded_csv ${params.PoSTcode}
     """
 }

@@ -415,7 +415,7 @@ def decoder_qc(table, postcode=True):
                 scalebar_loc=scalebar_location,
             )
 
-            plt.title("Gene Expression decoded by PostCode") 
+            plt.title("Gene Expression decoded by PoSTcode") 
             plt.xlabel("X Coordinate") 
             plt.ylabel("Y Coordinate")  
             plt.gca().invert_yaxis() 
@@ -427,7 +427,7 @@ def decoder_qc(table, postcode=True):
 
             plt.gca().set_aspect('equal')  # Set aspect ratio to 'equal'
             plt.tight_layout() 
-            plt.savefig('GeneExpression-DecodedByPostCode.png')
+            plt.savefig('GeneExpression-DecodedByPoSTcode.png')
             plt.close()
 
             ###################################################### 
@@ -553,7 +553,7 @@ def decoder_qc(table, postcode=True):
             ))
 
             fig.update_layout(
-                title='Spot counts for Empty Barcodes in PostCode',
+                title='Spot counts for Empty Barcodes in PoSTcode',
                 xaxis=dict(title='Spot count'),
                 yaxis=dict(title='Empty barcodes'),
             )
@@ -565,7 +565,7 @@ def decoder_qc(table, postcode=True):
             ))
 
             fig_non_decoded.update_layout(
-                title='Non-decoded PoSTcode spot counts in PostCode',
+                title='Non-decoded spot counts in PoSTcode',
                 xaxis=dict(title='Spot'),
                 yaxis=dict(title='Count'),
                 height=400, 
@@ -585,7 +585,7 @@ def decoder_qc(table, postcode=True):
             fig_gene_counts.update_layout(
                 title='Gene Spot Counts',
                 xaxis=dict(title='Genes'),
-                yaxis=dict(title='Spot Counts in PostCode'),
+                yaxis=dict(title='Spot Counts in PoSTcode'),
                 xaxis_tickangle=-45,
                 height=400,  
                 width=600   
@@ -597,7 +597,7 @@ def decoder_qc(table, postcode=True):
                 marker_color=convert_palette_to_plotly(custom_palette),
             ))
             fig_top_genes.update_layout(
-                title='Top 25 Genes by % Total Spots in PostCode',
+                title='Top 25 Genes by % Total Spots in PoSTcode',
                 xaxis=dict(title='Genes'),
                 yaxis=dict(title='% Total Spots'),
                 height=400, 
@@ -610,7 +610,7 @@ def decoder_qc(table, postcode=True):
                 marker_color=convert_palette_to_plotly(custom_palette),
             ))
             fig_bottom_genes.update_layout(
-                title='Bottom 25 Genes by % Total Spots in PostCode',
+                title='Bottom 25 Genes by % Total Spots in PoSTcode',
                 xaxis=dict(title='Genes'),
                 yaxis=dict(title='% Total Spots'),
                 height=400,  
@@ -624,7 +624,7 @@ def decoder_qc(table, postcode=True):
                 marker_color='#FF7F50'
             ))
             fig_empty_barcodes.update_layout(
-                title='Spot counts for Empty Barcodes in PostCode',
+                title='Spot counts for Empty Barcodes in PoSTcode',
                 xaxis=dict(title='Spot count'),
                 yaxis=dict(title='Empty barcodes'),
                 height=400, 
@@ -633,17 +633,17 @@ def decoder_qc(table, postcode=True):
 
             html_content += '<h1>Non-decoded PoSTcode spot counts</h1>'
             html_content += fig_non_decoded.to_html(full_html=False, include_plotlyjs='cdn')
-            html_content += '<h1>Gene Spot Counts</h1>'
+            html_content += '<h1>Gene Spot Counts in PoSTcode</h1>'
             html_content += fig_gene_counts.to_html(full_html=False, include_plotlyjs='cdn')
-            html_content += '<h1>Top 25 Genes by % Total Spots</h1>'
+            html_content += '<h1>Top 25 Genes by % Total Spots in PoSTcode</h1>'
             html_content += fig_top_genes.to_html(full_html=False, include_plotlyjs='cdn')
-            html_content += '<h1>Bottom 25 Genes by % Total Spots</h1>'
+            html_content += '<h1>Bottom 25 Genes by % Total Spots in PoSTcode</h1>'
             html_content += fig_bottom_genes.to_html(full_html=False, include_plotlyjs='cdn')
-            html_content += '<h1>Spot counts for Empty Barcodes</h1>'
+            html_content += '<h1>Spot counts for Empty Barcodes in PoSTcode</h1>'
             html_content += fig_empty_barcodes.to_html(full_html=False, include_plotlyjs='cdn')
             html_content += '</body></html>'
         except:
-            error_message = "PoSTcode failed: Negative eigenvalues affect the covariance matrix utilized in multivariate normal distribution, requiring it to be positive definite when employed by the PostCode."
+            error_message = "PoSTcode failed: Negative eigenvalues affect the covariance matrix utilized in multivariate normal distribution, requiring it to be positive definite when employed by the PoSTcode."
             html_content += '<h1>Decoding by PoSTcode failed </h1>'
             html_content += error_message
 
@@ -652,7 +652,7 @@ def decoder_qc(table, postcode=True):
     table_html_s = df_general_s.to_html(index=False)
     if postcode:
             table_html = df_general.to_html(index=False)
-            html_content += '<h1>Here is the summary of the PostCode decoding</h1>'
+            html_content += '<h1>Here is the summary of the PoSTcode decoding</h1>'
             html_content += table_html
     html_content += '<h1>Here is the summary of the starfish decoding</h1>'
     html_content += table_html_s

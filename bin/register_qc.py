@@ -26,6 +26,8 @@ def read_roi_img(img, x_center, y_center, size):
     return img[y_center:y_center+size, x_center:x_center+size]
 
 def reg_qc_plot(regImg_path):
+    
+    cmaps = [plt.cm.Reds_r, plt.cm.Greens_r]
     downscale_factor=10
     region_size=100
     dapis = []
@@ -64,8 +66,8 @@ def reg_qc_plot(regImg_path):
         ax1 = axes[row_idx * 2][col_idx]
         ax2 = axes[row_idx * 2 + 1][col_idx]
 
-        ax1.imshow(ref, cmap='cividis', interpolation='nearest')
-        ax1.imshow(dapi_img, cmap='magma', interpolation='nearest', alpha=.6)
+        ax1.imshow(ref, cmaps[0], vmin=np.min(ref), vmax=np.max(ref)/4)
+        ax1.imshow(dapi_img, cmaps[1], alpha=.6, vmin=np.min(dapi_img), vmax=np.max(dapi_img)/4)
         ax1.set_title(f'DAPI ref on top of DAPI Image {i + 1}')
         ax1.axis('off')
         

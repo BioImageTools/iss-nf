@@ -8,13 +8,15 @@ include { TILE_SIZE_ESTIMATOR } from './modules/tile_size_estimator.nf'
 include { SPACETX } from './modules/spacetx.nf'
 include { JOIN_JSON } from './modules/join_json.nf'
 include { MAKE_EXP_JSON } from './modules/experiment_json.nf'
-include { SPOT_FINDER as SPOT_FINDER1 } from './modules/decoding.nf'
-include { SPOT_FINDER as SPOT_FINDER2 } from './modules/decoding.nf'
+include { SPOT_FINDER as SPOT_FINDER_1 } from './modules/decoding.nf'
+include { SPOT_FINDER as SPOT_FINDER_2 } from './modules/decoding.nf'
 include { TILE_PICKER } from './modules/tile_picker.nf'
 include { THRESHOLD_FINDER } from './modules/threshold_finder.nf'
 include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 include { JOIN_COORDINATES } from './modules/join_coords.nf'
-include { DECODER_QC } from './modules/decoder_qc.nf'
+include { DECODER_QC as DECODER_QC_PoSTcode} from './modules/decoder_qc.nf'
+include { DECODER_QC as DECODER_QC_Starfish} from './modules/decoder_qc.nf'
+include { DECODER_QC as DECODER_QC_PoSTcodeFailed } from './modules/decoder_qc.nf'
 include { MERGE_HTML } from './modules/merge_html.nf'
 include { CONCAT_CSV } from './modules/concat_csv.nf'
 include { CONCAT_NPY } from './modules/concat_npy.nf'
@@ -33,6 +35,8 @@ def filter_channel(image_id) {
 }
 
 workflow {
+    
+    println "PoSTcode activation: ${params.PoSTcode}"
 
     // Define tuple of round ID and file path for moving images:
     movingLearn_ch = Channel
@@ -84,7 +88,11 @@ workflow {
         .map{it -> [it[1]]}
         .collect()
 
-    reg_html = REGISTER_QC(regImg_path.combine(anch_path))
+    reg_qc_inputs = regImg_path.combine(
+        Channel.fromPath(params.inputMovImagesLearnPath).toList())
+        .combine(Channel.fromPath(params.inputRefImagePath).combine(anch_path))
+
+    reg_html = REGISTER_QC(reg_qc_inputs)
  
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
@@ -162,7 +170,7 @@ workflow {
                     it -> it[1]
                 }
     
-    spots_detected_ch = SPOT_FINDER1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
+    spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
         
     starfish_tables = spots_detected_ch[1].toList() 
     threshold_results = THRESHOLD_FINDER(starfish_tables)
@@ -172,7 +180,7 @@ workflow {
     fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
 
     only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
-    spots_detected_ch = SPOT_FINDER2(tuple_with_all, total_fovs_ch, only_thr_ch)
+    spots_detected_ch = SPOT_FINDER_2(tuple_with_all, total_fovs_ch, only_thr_ch)
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList() 
 
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
@@ -180,7 +188,7 @@ workflow {
     // postCode.view()
     starfish_table = CONCAT_CSV(sorted_starfish_tables)
     
-    if (params.postCode){
+    if (params.PoSTcode){
         postcode_results = POSTCODE_DECODER(
             Channel.fromPath(params.CodeJSON),
             starfish_table,
@@ -188,17 +196,14 @@ workflow {
         ) 
         csv_name = postcode_results.collect {
             it -> it.baseName
-        }
-        csv_name.view()
-        
-        if (csv_name.contains("postcode_decoding_failed")){
-            decoder_html = DECODER_QC(starfish_table)
+        }      
+        if (csv_name.contains("postcode_decoding_failed")==true){
+            decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table)
         }else{
-             decoder_html = DECODER_QC(postcode_csv) 
-        }
-        
+             decoder_html = DECODER_QC_PoSTcode(postcode_results) 
+        }      
     }else{
-        decoder_html = DECODER_QC(starfish_table)
+        decoder_html = DECODER_QC_Starfish(starfish_table)
     }
     
     // Concatenate HTML files from all processes

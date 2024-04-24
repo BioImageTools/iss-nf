@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-params.flagActive = false
+params.flagActive = true
 
 
 include { LEARN_TRANSFORM; APPLY_TRANSFORM; NORMALIZE } from './modules/registration.nf'
@@ -26,7 +26,7 @@ include { CONCAT_NPY } from './modules/concat_npy.nf'
 
 workflow {
 
-    input_npy = Channel.fromPath('/hpc/scratch/hdd1/nv066607/test-data/*.npy').toSortedList()
+/*     input_npy = Channel.fromPath('/hpc/scratch/hdd1/nv066607/test-data/*.npy').toSortedList()
     //input_npy.view()
     test = CONCAT_NPY(input_npy)
     name = test.map { it ->
@@ -36,6 +36,11 @@ workflow {
         println "YES"
     }else{
         println "NO"
+    } */
+    if (params.PoSTcode){
+        println "yes"
+    }else{
+        println "no"
     }
 
 }
