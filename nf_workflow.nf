@@ -173,8 +173,9 @@ workflow {
     spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
         
     starfish_tables = spots_detected_ch[1].toList() 
+
     threshold_results = THRESHOLD_FINDER(starfish_tables)
-    picked_threshold = threshold_results[0].splitText()
+   picked_threshold = threshold_results[0].splitText()
     picked_threshold_html = threshold_results[1]
 
     fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)

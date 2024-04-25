@@ -25,6 +25,7 @@ include { CONCAT_NPY } from './modules/concat_npy.nf'
 
 
 workflow {
+    println params.empty_barcodes
 
 /*     input_npy = Channel.fromPath('/hpc/scratch/hdd1/nv066607/test-data/*.npy').toSortedList()
     //input_npy.view()

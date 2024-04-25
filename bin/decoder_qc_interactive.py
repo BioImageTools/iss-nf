@@ -8,20 +8,7 @@ import sys
 import base64
 import seaborn as sns
 from matplotlib.lines import Line2D
-
-
-empty_barcodes = [
-    'ABCA1', 'CDKN1A', 'CYP51A1', 'DHCR24',
-    'FDFT1', 'HMGCR', 'HMMR', 'INSIG1',
-    'LDLR', 'LIF', 'MYLIP', 'PIF1',
-    'PLK1', 'SCD5', 'ACTB', 'GAPDH'
-]
-
-remove_genes = ['IGHA1', 'IGHG1', 'IGHD', 'IGHM']
-
-invalid_codes = ['infeasible', 'background', 'nan', 'NaN']
-
-MICROM_PER_PX = 0.1625
+import json
 
 def print_in_a_box(text, margin=5):
     print('', '_' * (len(text) + (margin * 2)))
@@ -85,7 +72,7 @@ def filter_results(spots, decoding_method, column_map, empty_barcodes=None, remo
 
     return spots, empty_barcode_spots
 
-def get_fdr(empties, total, n_genesPanel=246):
+def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
 
     empty_n = len(empty_barcodes)
     if remove_genes is not None: 
@@ -96,7 +83,11 @@ def get_fdr(empties, total, n_genesPanel=246):
     return (empties / total) * (panel_n / empty_n)
 
 
-def decoder_qc(table, postcode=True):
+def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX):
+
+    empty_barcodes = json.load(open(empty_barcodes, 'r'))
+    remove_genes   = json.load(open(remove_genes, 'r'))
+    invalid_codes  = json.load(open(invalid_codes, 'r')) 
 
     current_dir = os.getcwd()
     
@@ -142,7 +133,7 @@ def decoder_qc(table, postcode=True):
                 '#Detected': len(df),
                 '#Decoded': total_filtered_count_s,
                 'Percent': total_filtered_count_s/len(df) * 100,
-                'FDR%': get_fdr(empty_barcodes_count_s.shape[0], total_s.shape[0]) *100}, ignore_index=True)
+                'FDR%': get_fdr(empty_barcodes_count_s.shape[0], total_s.shape[0], n_gene_panel, empty_barcodes, remove_genes) *100}, ignore_index=True)
 
     ###################################################
 
@@ -385,7 +376,7 @@ def decoder_qc(table, postcode=True):
                         '#Detected': len(df),
                         '#Decoded': total_filtered_count,
                         'Percent': total_filtered_count/len(df) * 100,
-                        'FDR%': get_fdr(empty_barcodes_count.shape[0], total.shape[0]) *100}, ignore_index=True)
+                        'FDR%': get_fdr(empty_barcodes_count.shape[0], total.shape[0], n_gene_panel, empty_barcodes, remove_genes) *100}, ignore_index=True)
 
             ###################################################
             COLORS = plt.rcParams['axes.prop_cycle'].by_key()['color']
@@ -673,4 +664,9 @@ if __name__ == "__main__":
 
     csv_path = (sys.argv[1])
     postcode = (sys.argv[2])
-    decoder_qc(csv_path, postcode=postcode)
+    n_gene_panel = int(sys.argv[3])
+    empty_barcodes = (sys.argv[4])
+    remove_genes = (sys.argv[5])
+    invalid_codes = (sys.argv[6])
+    MICROM_PER_PX = float(sys.argv[7])
+    decoder_qc(csv_path, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX)

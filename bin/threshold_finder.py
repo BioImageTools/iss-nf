@@ -1,20 +1,11 @@
 import numpy as np
 import pandas as pd
-import fire
+# import fire
 import matplotlib.pyplot as plt
 import os
 import base64
-
-empty_barcodes = [
-    'ABCA1', 'CDKN1A', 'CYP51A1', 'DHCR24',
-    'FDFT1', 'HMGCR', 'HMMR', 'INSIG1',
-    'LDLR', 'LIF', 'MYLIP', 'PIF1',
-    'PLK1', 'SCD5', 'ACTB', 'GAPDH'
-]
-
-remove_genes = ['IGHA1', 'IGHG1', 'IGHD', 'IGHM']
-
-invalid_codes = ['NaN']
+import sys
+import json
 
 def plot_report(thresholds, false_discovery_rates, decoded_spots, picked_threshold):
 
@@ -124,17 +115,26 @@ def mode_first(data):
     return modes[0] if modes else None
 
 
-def get_fdr(empties, total, n_gene_panel=242, n_emptyBarcodes=16):
-    return (empties / total) * (n_gene_panel / n_emptyBarcodes)
+def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
 
+    empty_n = len(empty_barcodes)
+    if remove_genes is not None: 
+        panel_n = (n_genesPanel - len(remove_genes) + empty_n)
+    else:
+        panel_n = (n_genesPanel + empty_n)
+    
+    return (empties / total) * (panel_n / empty_n)
 
-def auto_threshold(*args):
+def auto_threshold(n_genesPanel, empty_barcodes, remove_genes, invalid_codes, *args):
         
+        empty_barcodes = json.load(open(empty_barcodes, 'r'))
+        remove_genes   = json.load(open(remove_genes, 'r'))
+        invalid_codes  = json.load(open(invalid_codes, 'r')) 
 
         df_general = pd.DataFrame(columns=['threshold', '#Detected', '#Decoded', 'Percent', 'FDR', 'Picked_thresh'])
 
         for path in args:
-            
+            print(path, '-----------------------------------------')
             components = path.split('/')
             filename = components[-1]
             fov_name = filename.split('-')[0]
@@ -156,7 +156,7 @@ def auto_threshold(*args):
                         '#Detected': len(df),
                         '#Decoded': total_filtered_count,
                         'Percent': total_filtered_count/len(df) * 100,
-                        'FDR': get_fdr(empty_barcodes_count, len(df))}, ignore_index=True)
+                        'FDR': get_fdr(empty_barcodes_count, len(df), n_genesPanel, empty_barcodes, remove_genes)}, ignore_index=True)
         
         thresholds = df_general['threshold']
         detected_spots = df_general['#Detected']
@@ -178,7 +178,9 @@ def auto_threshold(*args):
     
 if __name__ == "__main__":
     
-    cli = {
-        "find_threshold": auto_threshold,
-    }
-    fire.Fire(cli)
+    n_genesPanel = int(sys.argv[1])
+    empty_barcodes = (sys.argv[2])
+    remove_genes = (sys.argv[3])
+    invalid_codes = (sys.argv[4])
+    csv_paths = (sys.argv[5])
+    auto_threshold(n_genesPanel, empty_barcodes, remove_genes, invalid_codes, csv_paths)
