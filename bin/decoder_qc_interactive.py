@@ -284,7 +284,7 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
     fig_gene_counts.add_trace(go.Bar(
         x=gene_counts_subset.index,
         y=gene_counts_subset.values,
-        marker_color=['darkcyan', 'darkgreen'],
+        marker_color=[COLORS[i] for i in range(num_colors_needed)],
         text=[f'Total: {count}' for count in gene_counts_subset.values],
         hoverinfo='text'
     ))
@@ -542,7 +542,7 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
             fig_gene_counts.add_trace(go.Bar(
                 x=gene_counts_subset.index,
                 y=gene_counts_subset.values,
-                marker_color=['darkcyan', 'darkgreen'],
+                marker_color=[COLORS[i] for i in range(num_colors_needed)],
                 text=[f'Total: {count}' for count in gene_counts_subset.values],
                 hoverinfo='text'
             ))
