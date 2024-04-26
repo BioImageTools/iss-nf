@@ -36,7 +36,7 @@ def filter_channel(image_id) {
 
 workflow {
     
-    println "PoSTcode activation: ${params.PoSTcode}"
+/*     println "PoSTcode activation: ${params.PoSTcode}"
 
     // Define tuple of round ID and file path for moving images:
     movingLearn_ch = Channel
@@ -209,5 +209,7 @@ workflow {
     
     // Concatenate HTML files from all processes
     ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
-    MERGE_HTML(ch_all_html_files) 
+    MERGE_HTML(ch_all_html_files)  */
+    postcode_results = Channel.fromPath('/hpc/scratch/hdd3/nv066607/work2/f2/a1a4dfdb790ba8d80c406613b464da/postcode_starfish_output.csv')
+    DECODER_QC_PoSTcode(postcode_results)
 }
