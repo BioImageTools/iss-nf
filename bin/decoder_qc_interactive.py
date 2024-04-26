@@ -83,15 +83,13 @@ def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
     return (empties / total) * (panel_n / empty_n)
 
 
-def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX, desired_genes=None, housekeepers=None):
+def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX, desired_genes, housekeepers):
 
     empty_barcodes = json.load(open(empty_barcodes, 'r'))
     remove_genes   = json.load(open(remove_genes, 'r'))
     invalid_codes  = json.load(open(invalid_codes, 'r'))
-    if desired_genes is not None:
-        desired_genes  = json.load(open(desired_genes, 'r')) 
-    if housekeepers is not None: 
-        housekeepers  = json.load(open(housekeepers, 'r'))  
+    desired_genes  = json.load(open(desired_genes, 'r')) 
+    housekeepers  = json.load(open(housekeepers, 'r'))  
 
     current_dir = os.getcwd()
     
@@ -154,8 +152,8 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
     spots_for_scatter = filter_results(
         df, decoding_method, column_map, empty_barcodes, remove_genes)[0].set_index(column_map['target'][decoding_method])
 
-    legend_location = 'upper left'
-    scalebar_location = 'lower left'
+    legend_location = 'upper right'
+    scalebar_location = 'lower right'
 
     fig, ax = plt.subplots(figsize=(12, 8))
     scatter_plot(
