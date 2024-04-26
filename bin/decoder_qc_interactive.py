@@ -56,11 +56,11 @@ def scatter_plot(ax, data, gene_cm, x_col='X', y_col='Y', pixel_size=None,
 
     return ax
 
-def filter_results(spots, decoding_method, column_map, empty_barcodes=None, remove_gene=None):
+def filter_results(spots, decoding_method, column_map, empty_barcodes=None, remove_genes=None):
     """
     Collect filtered results of chosen decoded method (either PoSTcode or Starfish).
     """
-    if remove_gene is not None: 
+    if remove_genes is not None: 
         
         spots = spots[spots[column_map['passes_thresholds'][decoding_method]] & \
                                         ~spots[column_map['target'][decoding_method]].isin(remove_genes)]
