@@ -1,6 +1,4 @@
 import fire
-import pickle
-import os
 import numpy as np
 from registration import *
 from starfish.spots import DecodeSpots
@@ -33,14 +31,14 @@ def register(
 def find_spots(
     image_stack: ImageStack, 
     reference_stack: ImageStack,
-    threshold: float = 0.003
+    thresh,
 ) -> SpotFindingResults:
     """Detect spots using laplacian of gaussians approach."""
     bd = FindSpots.BlobDetector(
-                threshold=threshold,
                 min_sigma=1,
                 max_sigma=2,
                 num_sigma=30,
+                threshold=thresh,
                 is_volume=False,
                 measurement_type='mean')
     dots_max = reference_stack.reduce((Axes.ROUND, Axes.ZPLANE),
@@ -77,16 +75,15 @@ def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTab
 
 def process_fov(
     images_dir_path,
-    fov_name: str,
-    threshold: float = 0.003
+    fov_name,
+    threshold,
 ):
-    #exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')
     dapi_rounds = fov.get_image('nuclei')
-    #dapi_ref = fov.get_image('anchor_nuclei')
+    dapi_ref = fov.get_image('anchor_nuclei')
 
     #if normalize:
     #    primary = _normalize(image_stack=primary)
@@ -109,8 +106,7 @@ def process_fov(
     filtered_imgs = primary#_registered
 
     spots = find_spots(image_stack=filtered_imgs,
-                       reference_stack=filtered_ref,
-                       threshold=threshold)
+                       reference_stack=filtered_ref, thresh=threshold)
 
     #decoded = decode(spots, exp)
     
@@ -119,7 +115,7 @@ def process_fov(
     np.save(f'{fov_name}.npy', spots4postcode)
     # Do starfish decoding already in here:
     decoded = decode(spots, exp)
-    decoded.to_features_dataframe().to_csv(f"{fov_name}-{str(threshold)}-starfish_results.csv", index=False)
+    decoded.to_features_dataframe().to_csv(f'{fov_name}-starfish_results-{threshold}.csv', index=False)
 
 
 if __name__ == "__main__":

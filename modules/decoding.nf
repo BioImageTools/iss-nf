@@ -1,8 +1,10 @@
 pythonScript = "${workflow.projectDir}/bin/decoder_starfish.py"
 
 process SPOT_FINDER {
-    //catch error and resubmit
-    label 'decoding'
+    
+    //debug true
+    label 'decoding_starfish'
+
     input:
     path('*')
     val(fov_id)
@@ -12,9 +14,10 @@ process SPOT_FINDER {
     output:
     path("*.npy")
     path ("*.csv")
+    val(threshold)
 
     script:
     """
-    python ${pythonScript} decode_fov ./ $fov_id $threshold
+    python ${pythonScript} decode_fov ./ ${fov_id} ${threshold}
     """
    }

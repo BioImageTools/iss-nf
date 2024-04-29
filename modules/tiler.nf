@@ -9,7 +9,7 @@ process TILING {
     tuple val(sampleID), path(transformedImage), val(tile_size), path(experiment_metadata_json)
 
     output:
-    tuple val(sampleID), path("*.tiff")
+    tuple val(sampleID), path("*.tif*")
     tuple val(sampleID), path("*.csv")
 
     script:
