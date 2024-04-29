@@ -179,20 +179,11 @@ def decoder_qc(table):
     COLORS = plt.rcParams['axes.prop_cycle'].by_key()['color']
     decoding_method = 'postcode'
 
-    # This needs to be changed depending the expriment:
-    """
     gene_colors = {
         'COL1A2': COLORS[5],
         'CD4': COLORS[4],
         'KRT5': COLORS[0],
         'EPCAM': COLORS[0],
-    }
-    """
-    gene_colors = {
-        'Gapdh': COLORS[5],
-        'Penk': COLORS[4],
-        'Plpp4': COLORS[0],
-        'Cux2': COLORS[0],
     }
 
     spots_for_scatter = filter_results(
@@ -206,7 +197,7 @@ def decoder_qc(table):
     scatter_plot(
         ax, spots_for_scatter, gene_cm=gene_colors, x_col='xc', y_col='yc',
         pixel_size=MICROM_PER_PX, despine=True,
-        point_size=0.5, alpha=0.1, 
+        point_size=0.5, #alpha=0.1, 
         others_color='k',  
         legend_loc=legend_location,
         scalebar_loc=scalebar_location,

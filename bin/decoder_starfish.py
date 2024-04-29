@@ -75,16 +75,15 @@ def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTab
 
 def process_fov(
     images_dir_path,
-    fov_name: str,
-    threshold: float = 0.003
+    fov_name,
+    threshold,
 ):
-    #exp = Experiment.from_json(os.path.join(images_dir_path, 'experiment.json'))
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')
     dapi_rounds = fov.get_image('nuclei')
-    #dapi_ref = fov.get_image('anchor_nuclei')
+    dapi_ref = fov.get_image('anchor_nuclei')
 
     #if normalize:
     #    primary = _normalize(image_stack=primary)

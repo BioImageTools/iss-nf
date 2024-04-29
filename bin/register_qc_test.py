@@ -1,4 +1,5 @@
 import os
+import glob
 import numpy as np
 import matplotlib.pyplot as plt
 import tifffile as tif
@@ -154,3 +155,7 @@ if __name__ == "__main__":
 
     regImg_path = sys.argv[1:]
     reg_qc_plot(regImg_path)
+    # cli = {
+    #     "reg_qc": reg_qc_plot,
+    #     }
+    # fire.Fire(cli)

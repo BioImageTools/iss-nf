@@ -1,0 +1,4 @@
+  File "/hpc/scratch/hdd2/nv066607/iss-nf/bin/registration.py", line 20
+    ) -> np.ndarray:
+      ^
+SyntaxError: invalid syntax

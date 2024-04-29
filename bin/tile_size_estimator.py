@@ -6,7 +6,8 @@ import base64
 import matplotlib.pyplot as plt
 
 def plot_tile_grid(image, tileSize):
-    plt.imshow(image, cmap='gray')
+    vmax = np.percentile(image, 98)
+    plt.imshow(image, cmap='gray', vmax=vmax)
     height, width = image.shape[:2]
     
     for i in range(0, width, tileSize):
@@ -111,6 +112,9 @@ def estimate_tile_size(image_path: str):
     with open('total_fovs.txt', "w+") as fh:
         for f in range(total_fovs):
             fh.writelines(write_fov_name(f)+'\n')
+    
+    
+    #tile_images(image_path, selected_tileSize)
 
     return str(selected_tileSize)
 
@@ -119,3 +123,5 @@ if __name__ == "__main__":
         "run": estimate_tile_size
     }
     fire.Fire(cli)
+
+
