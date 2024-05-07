@@ -15,6 +15,8 @@ include { POSTCODE_DECODER } from './modules/postcode_decoding.nf'
 include { JOIN_COORDINATES } from './modules/join_coords.nf'
 include { DECODER_QC } from './modules/decoder_qc.nf'
 include { MERGE_HTML } from './modules/merge_html.nf'
+include { CONCAT_CSV } from './modules/concat_csv.nf'
+include { CONCAT_NPY } from './modules/concat_npy.nf'
 
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
@@ -32,88 +34,6 @@ def filter_channel(image_id) {
 //}
 
 workflow {
-    /*
-    // Define tuple of round ID and file path for moving images:
-    movingLearnReg_ch = Channel
-        .fromPath(params.inputMovImagesLearnPath)
-        .map{ f ->
-            sampleID = f.baseName
-            return [sampleID[0,1], f]
-            }
-    // Parameter files channel:
-    params_reg_ch = Channel
-        .fromPath(params.elastix_parameter_files)
-        .toSortedList()
-    // 
-    learnTransformation_ch = LEARN_TRANSFORM(movingLearnReg_ch, params.inputFixImagePath, params.rescale_factor, params_reg_ch)
-
-    // Define the channel with data for which to apply found transformations:
-    moving_ch = Channel
-        .fromPath(params.movingImagesApplyPath)
-        .map { it -> 
-            [it.baseName[0,1], it]}
-
-    // Use previous channel and LEARN_TRANSFORM output to apply transformations based on 
-    // the SampleID for combining both channels:
-    registered_out_ch = APPLY_TRANSFORM(learnTransformation_ch.combine(moving_ch, by:0))
-    // Prepare data for tiling by taking the whole name as the sampleID:
-
-    renamed_registered_out_ch = registered_out_ch
-        .map{it -> [it[1].baseName, it[1]]}
-
-    
-    // Normalized the missing images:
-    missing_round = Channel
-        .fromPath(params.inputUntransformedImagesPath)
-        .map { it ->
-            [it.baseName, it]
-        }
-    missing_round_norm = NORMALIZE(missing_round)
-    merged_channel = missing_round_norm.mix(renamed_registered_out_ch)
-
-    // Use function 'filter_channel' to change 'merged_channel' id's and
-    // identify path by image type (primary, nuclei, etc). 
-    redefined_merged_ch = merged_channel
-        .map { it ->
-            [filter_channel(it[0]), it[1]]}
-
-    // Estimate tile size based on the registered anchor image:
-    tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputFixImagePath))
-    size_ch = tile_metadata_ch[1]
-        .map { it ->
-            it.baseName}
-
-    // To use later for the DECODING_POSTCODE process:
-    coordinates_csv = tile_metadata_ch[2]
-
-    total_fovs_ch = tile_metadata_ch[0]
-        .splitText()
-        .map { it -> it.trim() }
-
-    // Add tile size as third argument for the input:
-    redefined_merged_ch_tile = redefined_merged_ch
-        .combine(size_ch)
-        .combine(Channel.fromPath(params.ExpMetaJSON))
-
-    // TILING PART:
-    tiled_ch = TILING(redefined_merged_ch_tile)
-
-    joined_coords_ch = tiled_ch[1].groupTuple()
-
-    coords4spacetx = JOIN_COORDINATES(joined_coords_ch)
-
-    grouped_tiled_images = tiled_ch[0].groupTuple()
-
-    // Flatten the files on the tuple so they can be seen by the SPACETX process
-    // as a single folder with the working directory:
-    grouped_tiled_images_flat = grouped_tiled_images
-        .map { it ->
-            [it[0], it[1].flatten()]}
-
-    grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
-    //grouped_input.view()
-    */
-
     // TEST POSTCODE DATA DOWN HERE:
     // Create coordinates channel tuple for all channel types:
     coords_ch = Channel.fromPath(params.primary_coords)//.map { it -> ['primary', it]}
@@ -146,7 +66,7 @@ workflow {
 
     // Join all spacetx files with codebook and experiment JSONs:
     exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
-    exp_json_ch.view()
+    //exp_json_ch.view()
     
     exp_plus_codebook = Channel.fromPath(params.CodeJSON)
         .mix(exp_json_ch)
@@ -166,8 +86,8 @@ workflow {
             }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.08
-    def max_thr = 0.1
+    def min_thr = 0.001
+    def max_thr = 0.01
     def n_vals = 2
 
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
@@ -182,9 +102,14 @@ workflow {
 
     decoding_results = SPOT_FINDER1(tuple_with_all, only_fov_ch, only_thr_ch)
     starfish_tables = decoding_results[1].toList()
+    //starfish_tables.view()
+    picked_threshold = THRESHOLD_FINDER(
+        Channel.fromPath(params.ExpMetaJSON),
+        starfish_tables
+    )[0].splitText().map{ it -> it.trim()}
+    //picked_threshold = THRESHOLD_FINDER(starfish_tables)[0].splitText().map{ it -> it.trim()}
+    //picked_threshold.view()
     
-    picked_threshold = THRESHOLD_FINDER(starfish_tables).splitText().map{ it -> it.trim()}
-    picked_threshold.view()
     
     //total_fovs_ch = Channel.of('fov_000', 'fov_001', 'fov_002')
     total_fovs_ch = Channel.fromPath(params.fovs2decode).splitText().map { it -> it.trim()}
@@ -197,13 +122,16 @@ workflow {
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList()
     
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
-    all_starfish_output = sorted_detected_spots_ch.concat(sorted_starfish_tables).flatten().toList()
+    //all_starfish_output = sorted_detected_spots_ch.concat(sorted_starfish_tables).flatten().toList() Used to be like this, now everything is being concatenated together
     //all_starfish_output.view()
+    spot_intensities = CONCAT_NPY(sorted_detected_spots_ch)
+    // postCode.view()
+    starfish_table = CONCAT_CSV(sorted_starfish_tables)
     
     postcode_results = POSTCODE_DECODER(
-        Channel.fromPath(params.ExpMetaJSON),
         Channel.fromPath(params.CodeJSON),
-        all_starfish_output
+        starfish_table,
+        spot_intensities
     )
 
     decoder_html = DECODER_QC(postcode_results) 
@@ -211,4 +139,5 @@ workflow {
     // Concatenate HTML files from all processes
     //ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html)
     //MERGE_HTML(ch_all_html_files)
+
 }

@@ -157,7 +157,7 @@ workflow {
                 }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.008
+    def min_thr = 0.003
     def max_thr = 0.01
     def n_vals = 3
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
@@ -175,7 +175,10 @@ workflow {
         
     starfish_tables = spots_detected_ch[1].toList() 
 
-    threshold_results = THRESHOLD_FINDER(starfish_tables)
+    threshold_results = THRESHOLD_FINDER(
+        Channel.fromPath(params.ExpMetaJSON),
+        starfish_tables
+    )//[0].splitText().map{ it -> it.trim()}
     picked_threshold = threshold_results[0].splitText()
     picked_threshold_html = threshold_results[1]
 

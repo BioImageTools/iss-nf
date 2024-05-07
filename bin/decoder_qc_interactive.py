@@ -204,24 +204,11 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         marker_color=convert_palette_to_plotly(custom_palette),
     ))
     fig_top.update_layout(
-<<<<<<< HEAD
-        title='Top 25 Genes by % Total Spots',
-=======
         title='Top 25 Genes by % Total Spots in Starfish',
->>>>>>> iss-nf-emptyBarcodes
         xaxis=dict(title='Genes'),
         yaxis=dict(title='% Total Spots'),
     )
     #####################################################
-<<<<<<< HEAD
-    custom_palette = sns.color_palette("coolwarm", as_cmap=True)
-
-    def convert_palette_to_plotly(palette):
-        rgb_values = palette(range(256))
-        return [f'rgb({int(r[0]*255)},{int(r[1]*255)},{int(r[2]*255)})' for r in rgb_values]
-
-=======
->>>>>>> iss-nf-emptyBarcodes
     gene_count_subset_bottom = gene_counts.iloc[-25:]
     fig_bottom = go.Figure(go.Bar(
         x=gene_count_subset_bottom.index,
@@ -229,33 +216,16 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         marker_color=convert_palette_to_plotly(custom_palette),
     ))
     fig_bottom.update_layout(
-<<<<<<< HEAD
-        title='Bottom 25 Genes by % Total Spots',
-=======
         title='Bottom 25 Genes by % Total Spots in Starfish',
->>>>>>> iss-nf-emptyBarcodes
         xaxis=dict(title='Genes'),
         yaxis=dict(title='% Total Spots'),
     )
     #####################################################
-<<<<<<< HEAD
-    df2 = df[df['passes_thresholds_postcode']==True].set_index('target_postcode')
-
-    def get_lob(blanks):
-        return np.mean(blanks) + (1.645 * np.std(blanks))
-
-    housekeepers = ['RPLP0', 'GUSB']
-
-    df2 = df2.groupby(df2.index).count().sort_values('xc', ascending=False)
-    df2['i'] = range(df2.shape[0])
-
-=======
     df2 = df[df['passes_thresholds']==True].set_index('target')
     df2 = df2.groupby(df2.index).count().sort_values('xc', ascending=False)
     df2['i'] = range(df2.shape[0])
     if housekeepers is None:
         housekeepers = [gene_counts.index[1],gene_counts.index[-1]]
->>>>>>> iss-nf-emptyBarcodes
     empty_barcode_counts = df2[df2.index.isin(empty_barcodes)]
     lob = get_lob(empty_barcode_counts.iloc[:, 0])
     housekeeper_counts = df2[df2.index.isin(housekeepers)]
@@ -283,26 +253,15 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         label='Housekeepers',
     )
 
-<<<<<<< HEAD
-    #plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
-
-    ax.set_yscale('log')
-    ax.set_title('PoSTcode results', fontsize=14)
-=======
     plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
 
     ax.set_yscale('log')
     ax.set_title('Starfish results', fontsize=14)
->>>>>>> iss-nf-emptyBarcodes
     ax.set_ylabel('Spot counts', fontsize=14)
     ax.set_xlabel('Target panel', fontsize=14)
     ax.legend()
     plt.tight_layout() 
-<<<<<<< HEAD
-    plt.savefig('Postcode_Result.png')
-=======
     plt.savefig('Starfish_Result.png')
->>>>>>> iss-nf-emptyBarcodes
     plt.close()
 
     #####################################################
@@ -314,108 +273,54 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         orientation='h', 
         marker_color='#FF7F50' 
     ))
-<<<<<<< HEAD
-
-    fig.update_layout(
-        title='Spot counts for Empty Barcodes',
-=======
     fig.update_layout(
         title='Spot counts for Empty Barcodes in Starfish',
->>>>>>> iss-nf-emptyBarcodes
         xaxis=dict(title='Spot count'),
         yaxis=dict(title='Empty barcodes'),
     )
     #####################################################
 
-<<<<<<< HEAD
-
-    fig_non_decoded = go.Figure(go.Bar(
-        x=non_decoded_spots.value_counts(dropna=False).index,
-        y=non_decoded_spots.value_counts(dropna=False).values,
-        marker=dict(color=non_decoded_spots.value_counts(dropna=False).values, colorscale='Viridis'),
-    ))
-
-    fig_non_decoded.update_layout(
-        title='Non-decoded PoSTcode spot counts',
-        xaxis=dict(title='Spot'),
-        yaxis=dict(title='Count'),
-        height=400, 
-        width=600   
-    )
-
-    fig_gene_counts = go.Figure()
-
-    fig_gene_counts.add_trace(go.Bar(
-        x=gene_counts_subset.index,
-        y=gene_counts_subset.values,
-        marker_color=['darkcyan', 'darkgreen'],
-=======
     fig_gene_counts = go.Figure()
     fig_gene_counts.add_trace(go.Bar(
         x=gene_counts_subset.index,
         y=gene_counts_subset.values,
         marker_color=[COLORS[i] for i in range(num_colors_needed)],
->>>>>>> iss-nf-emptyBarcodes
         text=[f'Total: {count}' for count in gene_counts_subset.values],
         hoverinfo='text'
     ))
 
     fig_gene_counts.update_layout(
-<<<<<<< HEAD
-        title='Gene Spot Counts',
-=======
         title='Gene Spot Counts in Starfish',
->>>>>>> iss-nf-emptyBarcodes
         xaxis=dict(title='Genes'),
         yaxis=dict(title='Spot Counts'),
         xaxis_tickangle=-45,
         height=400,  
         width=600   
     )
-<<<<<<< HEAD
-
-=======
->>>>>>> iss-nf-emptyBarcodes
     fig_top_genes = go.Figure(go.Bar(
         x=gene_count_subset_top.index,
         y=gene_count_subset_top.values.flatten(),
         marker_color=convert_palette_to_plotly(custom_palette),
     ))
     fig_top_genes.update_layout(
-<<<<<<< HEAD
-        title='Top 25 Genes by % Total Spots',
-=======
         title='Top 25 Genes by % Total Spots in Starfish',
->>>>>>> iss-nf-emptyBarcodes
         xaxis=dict(title='Genes'),
         yaxis=dict(title='% Total Spots'),
         height=400, 
         width=600   
     )
-<<<<<<< HEAD
-
-=======
->>>>>>> iss-nf-emptyBarcodes
     fig_bottom_genes = go.Figure(go.Bar(
         x=gene_count_subset_bottom.index,
         y=gene_count_subset_bottom.values.flatten(),
         marker_color=convert_palette_to_plotly(custom_palette),
     ))
     fig_bottom_genes.update_layout(
-<<<<<<< HEAD
-        title='Bottom 25 Genes by % Total Spots',
-=======
         title='Bottom 25 Genes by % Total Spots in Starfish',
->>>>>>> iss-nf-emptyBarcodes
         xaxis=dict(title='Genes'),
         yaxis=dict(title='% Total Spots'),
         height=400,  
         width=600    
     )
-<<<<<<< HEAD
-
-=======
->>>>>>> iss-nf-emptyBarcodes
     fig_empty_barcodes = go.Figure(go.Bar(
         y=df3.index,
         x=df3['Spot count'],
@@ -423,48 +328,12 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         marker_color='#FF7F50'
     ))
     fig_empty_barcodes.update_layout(
-<<<<<<< HEAD
-        title='Spot counts for Empty Barcodes',
-=======
         title='Spot counts for Empty Barcodes in Starfish',
->>>>>>> iss-nf-emptyBarcodes
         xaxis=dict(title='Spot count'),
         yaxis=dict(title='Empty barcodes'),
         height=400, 
         width=600    
     )
-<<<<<<< HEAD
-
-    current_dir = os.getcwd()
-
-    html_content = '<html><head><title>Interactive Decoding Plots</title></head><body>'
-
-    html_content += '<h1>Non-decoded PoSTcode spot counts</h1>'
-    html_content += fig_non_decoded.to_html(full_html=False, include_plotlyjs='cdn')
-
-    html_content += '<h1>Gene Spot Counts</h1>'
-    html_content += fig_gene_counts.to_html(full_html=False, include_plotlyjs='cdn')
-
-    html_content += '<h1>Top 25 Genes by % Total Spots</h1>'
-    html_content += fig_top_genes.to_html(full_html=False, include_plotlyjs='cdn')
-
-    html_content += '<h1>Bottom 25 Genes by % Total Spots</h1>'
-    html_content += fig_bottom_genes.to_html(full_html=False, include_plotlyjs='cdn')
-
-    html_content += '<h1>Spot counts for Empty Barcodes</h1>'
-    html_content += fig_empty_barcodes.to_html(full_html=False, include_plotlyjs='cdn')
-
-    html_content += '</body></html>'
-
-    # Generate HTML file
-    plot_folder = os.getcwd()
-    plot_files = sorted(os.listdir(plot_folder))
-    current_dir = os.getcwd()
-    table_html = df_general.to_html(index=False)
-
-    html_content += '<h1>Here is the summary of the postcode decoding</h1>'
-    html_content += table_html
-=======
        
     html_content = '<html><head><title>Interactive Decoding Plots</title></head><body>'
     html_content += '<h1>Gene Spot Counts in Starfish</h1>'
@@ -748,16 +617,11 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
             html_content += table_html
     html_content += '<h1>Here is the summary of the starfish decoding</h1>'
     html_content += table_html_s
->>>>>>> iss-nf-emptyBarcodes
     for plot_file in plot_files:
         if plot_file.endswith('.png'):
             plot_name = os.path.splitext(plot_file)[0]
             html_content += f'<h1>{plot_name}</h1>'
-<<<<<<< HEAD
-            with open(os.path.join(plot_folder, plot_file), 'rb') as img_file:
-=======
             with open(os.path.join(current_dir, plot_file), 'rb') as img_file:
->>>>>>> iss-nf-emptyBarcodes
                 img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
                 html_content += f'<div class="plot-container"><img src="data:image/png;base64,{img_base64}"></div>'
     html_content += '</body></html>'
@@ -769,9 +633,6 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
 if __name__ == "__main__":
 
     csv_path = (sys.argv[1])
-<<<<<<< HEAD
-    decoder_qc(csv_path)
-=======
     postcode = (sys.argv[2])
     n_gene_panel = int(sys.argv[3])
     empty_barcodes = (sys.argv[4])
@@ -781,4 +642,3 @@ if __name__ == "__main__":
     desired_genes= (sys.argv[8])
     housekeepers= (sys.argv[9])
     decoder_qc(csv_path, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX, desired_genes, housekeepers)
->>>>>>> iss-nf-emptyBarcodes

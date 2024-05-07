@@ -1,4 +1,4 @@
-pythonScript = "${workflow.projectDir}/bin/test_postcode_decoder.py"
+pythonScript = "${workflow.projectDir}/bin/postcode_decoder.py"
 
 process POSTCODE_DECODER {
     label 'decoding_postcode'
