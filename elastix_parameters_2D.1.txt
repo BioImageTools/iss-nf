@@ -1,1 +1,0 @@
-/home/nv066607/python_github_enterprise/migratedVersion/issdecoder/elastix_parameter_files/elastix_parameters_2D.1.txt
