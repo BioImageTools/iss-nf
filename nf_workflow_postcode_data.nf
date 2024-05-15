@@ -86,7 +86,7 @@ workflow {
             }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.001
+    def min_thr = 0.003
     def max_thr = 0.01
     def n_vals = 2
 
