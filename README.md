@@ -2,6 +2,7 @@
 
 Nextflow workflow for the automated creation of a transcript map from ISS image data.
 
+![Nextflow workflow diagram](image.png)
 
 | Producer | Microscope | Stitched | Data location | Data public | Execution | Next steps | Issues |
 |----------|----------|----------|----------|----------|----------|----------|----------|

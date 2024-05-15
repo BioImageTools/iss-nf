@@ -159,10 +159,10 @@ workflow {
     // Generate Thresholds but first Define parameters
     def min_thr = 0.008
     def max_thr = 0.01
-    def n_vals = 3
+    def n_vals = 5
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
-        
+
     merge_tiles_thresh = tiles.combine(thresholds)
     merge_tiles_thresh_tile = merge_tiles_thresh.map{
                     it -> it[0]
@@ -174,7 +174,6 @@ workflow {
     spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
         
     starfish_tables = spots_detected_ch[1].toList() 
-
     threshold_results = THRESHOLD_FINDER(starfish_tables)
     picked_threshold = threshold_results[0].splitText()
     picked_threshold_html = threshold_results[1]

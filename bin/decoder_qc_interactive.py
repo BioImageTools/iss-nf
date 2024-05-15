@@ -7,7 +7,6 @@ import plotly.graph_objects as go
 import sys
 import base64
 import seaborn as sns
-from matplotlib.lines import Line2D
 import json
 
 def print_in_a_box(text, margin=5):
