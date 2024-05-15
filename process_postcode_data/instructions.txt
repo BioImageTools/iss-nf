@@ -1,0 +1,7 @@
+Instructions for processing mouse brain dataset from PoSTcode publication with iss-nf
+----------------------
+
+1. Download the dataset by accessing the following link: https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700
+2. Read the 'preprocess_postcode_data4iss-nf.py' script in this folder. To run it, use the following command:
+	$ python preprocess_postcode_data4iss-nf.py run path/2/S-BSST700/dir path/2/outputdir
+3. Modify the 'postcode_configuration.config' depending on which system are you running the workflow.
