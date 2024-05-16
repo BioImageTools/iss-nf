@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import fire
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
@@ -8,6 +9,7 @@ import sys
 import base64
 import seaborn as sns
 import json
+import exp_metadata_json as exp_meta
 
 def print_in_a_box(text, margin=5):
     print('', '_' * (len(text) + (margin * 2)))
@@ -82,13 +84,34 @@ def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
     return (empties / total) * (panel_n / empty_n)
 
 
-def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX, desired_genes, housekeepers):
-
+#def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX, desired_genes, housekeepers):
+def decoder_qc(table, experiment_metadata_json, postcode):#, ):
+    """
     empty_barcodes = json.load(open(empty_barcodes, 'r'))
     remove_genes   = json.load(open(remove_genes, 'r'))
     invalid_codes  = json.load(open(invalid_codes, 'r'))
     desired_genes  = json.load(open(desired_genes, 'r')) 
-    housekeepers  = json.load(open(housekeepers, 'r'))  
+    housekeepers  = json.load(open(housekeepers, 'r'))
+    """
+    ExpJsonParser = exp_meta.ExpJsonParser(experiment_metadata_json)
+    
+    empty_barcodes = ExpJsonParser.meta['empty_barcodes']
+    try:
+        remove_genes = ExpJsonParser.meta["remove_genes"]
+    except:
+        remove_genes = []
+    invalid_codes = ExpJsonParser.meta["invalid_codes"]
+    try:
+        desired_genes = ExpJsonParser.meta["desired_genes"]
+    except:
+        desired_genes = []
+    try:
+        housekeepers = ExpJsonParser.meta["housekeepers"]
+    except:
+        housekeepers = []
+        
+    n_gene_panel = ExpJsonParser.meta["total_number_genes"]
+    MICROM_PER_PX = ExpJsonParser.meta["MICROM_PER_PX"]
 
     current_dir = os.getcwd()
     
@@ -630,7 +653,11 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         f.write(html_content)
         
 if __name__ == "__main__":
-
+    cli = {
+        "create_qc": decoder_qc
+    }
+    fire.Fire(cli)
+    """
     csv_path = (sys.argv[1])
     postcode = (sys.argv[2])
     n_gene_panel = int(sys.argv[3])
@@ -641,3 +668,4 @@ if __name__ == "__main__":
     desired_genes= (sys.argv[8])
     housekeepers= (sys.argv[9])
     decoder_qc(csv_path, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX, desired_genes, housekeepers)
+    """
