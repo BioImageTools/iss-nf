@@ -158,7 +158,7 @@ def auto_threshold(experiment_metadata_json, *args):
     except:
         print("WARNING!!! No empty barcodes found in experiment")
     try:
-        invalid_codes = ExpJsonParser.meta["invalid_genes"]
+        invalid_codes = ExpJsonParser.meta["invalid_codes"]
     except:
         print("WARNING!!! Specify invalid codes!")
     try:
@@ -206,8 +206,12 @@ def auto_threshold(experiment_metadata_json, *args):
         fov_name = row['fov']
         thresholds = row['threshold']
         fdrs = row['FDR']
+        print(fdrs, "-"*10)
         decoded_spots = row['#Decoded']
-        scores.append(select_best_threshold(thresholds, fdrs, decoded_spots))
+        try:
+            scores.append(select_best_threshold(thresholds, fdrs, decoded_spots))
+        except:
+            print("WARNING: FDR null values")
     picked_threshold = mode_first(scores)
     plot_report(results, picked_threshold)
 

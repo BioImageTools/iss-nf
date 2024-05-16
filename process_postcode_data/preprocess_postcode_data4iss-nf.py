@@ -130,7 +130,47 @@ def format_tiles(indir, outdir):
     with open(os.path.join(outdir,'fovs.txt'), 'w') as fh:
         fh.writelines('\n'.join(list(set(total_fovs))))
                 
-                
+
+def stitch_channel(ch_idx, round_idx, input_dir, output_dir):
+    x_shape = 1000
+    x_total_tiles = 14 * x_shape + 1000
+    y_total_tiles = 16 * x_shape + 1000
+    # Create rectangular array that can fit all tiles and with '120' in each element (approximate background value)
+    stitched_img = np.full((y_total_tiles, x_total_tiles), 120)
+    for im_name in os.listdir(input_dir):
+        if ('.tif' in im_name) and (ch_idx in im_name):
+            match = re.search(r"_X(\d+)_Y(\d+)_c0(\d+)", im_name)
+            img_round = match.group(3)[-1]
+            if int(img_round) == round_idx:
+                X = int(match.group(1)) * 1000 - 10000
+                Y = int(match.group(2)) * 1000
+                stitched_img[Y:Y+1000, X:X+1000] = tiff.memmap(os.path.join(input_dir, im_name))
+    output_name = f"r{round_idx}_{ch_idx}.tif"
+    if ch_idx == '490LS':
+        tiff.imwrite(os.path.join(output_dir, 'anchor_dots.tif'), stitched_img.astype(np.uint16))
+    elif ch_idx == 'DAPI' and round_idx == 1:
+        tiff.imwrite(os.path.join(output_dir, output_name), stitched_img.astype(np.uint16))
+        tiff.imwrite(os.path.join(output_dir, 'anchor_nuclei.tif'), stitched_img.astype(np.uint16))
+    else:
+        tiff.imwrite(os.path.join(output_dir, output_name), stitched_img.astype(np.uint16))
+    
+def stitch_experiment(input_dir, output_dir):
+    try:
+        os.mkdir(output_dir)
+    except:
+        pass
+    
+    total_rounds = [1,2,3,4]
+    channels = ['DAPI',"425", "488", "568", "647"]
+    for ch in channels:
+        for r in total_rounds:
+            #print(ch, r)
+            stitch_channel(ch, r, input_dir, output_dir)
+            
+    stitch_channel('490LS', 1, input_dir, output_dir)
+    stitch_channel('DAPI', 1, input_dir, output_dir)
+
+
 def robust_min_max_norm(
     image,
     max_percentile: bool = 99.9999,
@@ -178,6 +218,7 @@ def robust_min_max_norm(
     
 if __name__ == "__main__":
     cli = {
-        "run": format_tiles
+        "run_tile_formating": format_tiles,
+        "run_stitched_formating": stitch_experiment
     }
     fire.Fire(cli)

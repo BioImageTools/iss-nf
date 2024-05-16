@@ -13,6 +13,9 @@ Nextflow workflow for the automated creation of a transcript map from ISS image 
 | Muza, EMBL             | Nikon Ti2    | Yes  | embl cluster          | No | TODO     |                                            
 
 
+## Run on published dataset (from PoSTcode preprint)
+Follow the instructions in the 'process_postcode_data' directory.
+
 
 ## TODO
 
