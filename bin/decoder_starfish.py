@@ -28,6 +28,18 @@ def register(
 
     return registered
 
+def filter(
+    radius,
+    reference_stack: ImageStack,
+    image_stack: ImageStack,
+    ) -> ImageStack:
+    
+    filt = Filter.WhiteTophat(masking_radius=radius)
+    filtered_imgs = filt.run(image_stack, verbose=False, in_place=False)
+    filtered_ref  = filt.run(reference_stack, verbose=True, in_place=False)
+
+    return filtered_imgs, filtered_ref
+
 def find_spots(
     image_stack: ImageStack, 
     reference_stack: ImageStack,
@@ -77,13 +89,15 @@ def process_fov(
     images_dir_path,
     fov_name,
     threshold,
+    radius=5,
+    filt=True,
 ):
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')
     dapi_rounds = fov.get_image('nuclei')
-    dapi_ref = fov.get_image('anchor_nuclei')
+    #dapi_ref = fov.get_image('anchor_nuclei')
 
     #if normalize:
     #    primary = _normalize(image_stack=primary)
@@ -101,9 +115,14 @@ def process_fov(
     #                        reference_stack=reference,
     #                        image_stack=primary
     #                        )
-
-    filtered_ref = reference
-    filtered_imgs = primary#_registered
+    if filt:
+        filtered_imgs, filtered_ref = filter(radius,
+                                reference_stack=reference,
+                                image_stack=primary,
+                                )
+    else:
+        filtered_ref = reference
+        filtered_imgs = primary
 
     spots = find_spots(image_stack=filtered_imgs,
                        reference_stack=filtered_ref, thresh=threshold)

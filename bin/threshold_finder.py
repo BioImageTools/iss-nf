@@ -1,34 +1,25 @@
 import numpy as np
 import pandas as pd
-import fire
 import matplotlib.pyplot as plt
 import os
 import base64
+import sys
+import json
 
-empty_barcodes = [
-    'ABCA1', 'CDKN1A', 'CYP51A1', 'DHCR24',
-    'FDFT1', 'HMGCR', 'HMMR', 'INSIG1',
-    'LDLR', 'LIF', 'MYLIP', 'PIF1',
-    'PLK1', 'SCD5', 'ACTB', 'GAPDH'
-]
-
-remove_genes = ['IGHA1', 'IGHG1', 'IGHD', 'IGHM']
-
-invalid_codes = ['NaN']
-
-def plot_report(thresholds, false_discovery_rates, decoded_spots, picked_threshold):
-
-    data = {'number_of_decoded': decoded_spots,
-            'thresholds': thresholds,
-            'fdrs': false_discovery_rates}
+def plot_report(results, picked_threshold):
     plt.figure(figsize=(10, 8))
-
-    sc = plt.scatter(thresholds, false_discovery_rates, c=decoded_spots,
-                    cmap='viridis', s=np.array(data['number_of_decoded'])*.01)
-
-    cbar = plt.colorbar(sc)
-    cbar.set_label('Number of Decoded')
-
+    
+    for index, row in results.iterrows():
+        fov = row['fov']
+        thresholds = row['threshold']
+        fdrs = row['FDR']
+        decoded_spots = row['#Decoded']
+        plt.scatter(thresholds, fdrs, c=decoded_spots, cmap='viridis', s=np.array(decoded_spots)*0.01)
+        for threshold, fdr, spots in zip(thresholds, fdrs, decoded_spots):
+            plt.text(threshold, fdr, fov, fontsize=9, ha='right', va='bottom')
+    
+    cbar = plt.colorbar(label='Number of Decoded')
+    
     plt.title('Scatter Plot of Thresholds vs. FDRs Colored by Number of Decoded')
     plt.xlabel('Thresholds')
     plt.ylabel('FDRs')
@@ -60,57 +51,32 @@ def plot_report(thresholds, false_discovery_rates, decoded_spots, picked_thresho
     with open(output_html_path, 'w') as f:
         f.write(html_content)
 
-def select_best_threshold1(thresholds, detected_spots, decoded_spots, false_discovery_rates):
+def score(fdr_percentage, decoded_spots, fdr_weight):
+    return (1 - fdr_weight) * decoded_spots - fdr_weight * 100 * fdr_percentage
 
-    best_fdr = float('inf')
-    best_threshold = None
+def filter_none_values(thresholds, fdrs, decoded_spots):
+    filtered_thresholds = []
+    filtered_fdrs = []
+    filtered_decoded_spots = []
 
-    for i, threshold in enumerate(thresholds):
-        fdr = false_discovery_rates[i]
+    for threshold, fdr, spots in zip(thresholds, fdrs, decoded_spots):
+        if threshold is not None and fdr is not None and spots is not None:
+            filtered_thresholds.append(threshold)
+            filtered_fdrs.append(fdr)
+            filtered_decoded_spots.append(spots)
 
-        if fdr < best_fdr:
-            best_fdr = fdr
-            best_threshold = threshold
-        elif fdr == best_fdr:
-            if decoded_spots[i] > decoded_spots[i]:
-                best_threshold = threshold
-            elif decoded_spots[i] == decoded_spots[i]:
-                if detected_spots[i] > detected_spots[i]:
-                    best_threshold = threshold
+    return filtered_thresholds, filtered_fdrs, filtered_decoded_spots
 
+def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.6):
+    thresholds, fdrs, decoded_spots = filter_none_values(thresholds, fdrs, decoded_spots)
+    
+    if not thresholds:  # Check if all were None then return a hardcoded value 0.001
+        return 0.001
+    
+    scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs, decoded_spots)]
+    best_threshold_index = np.argmax(scores)
+    best_threshold = thresholds[best_threshold_index]
     return best_threshold
-
-
-def select_best_threshold2(thresholds, detected_spots, decoded_spots, false_discovery_rates):
-
-    best_score = float('-inf')
-    best_threshold = None
-
-    for i, threshold in enumerate(thresholds):
-        score = -(2 * false_discovery_rates[i]**3) + (2*decoded_spots[i])
-
-        if score > best_score:
-            best_score = score
-            best_threshold = threshold
-
-    return best_threshold
-
-
-def select_best_threshold3(thresholds, detected_spots, decoded_spots, false_discovery_rates):
-
-    best_score = float('-inf')
-    best_threshold = None
-
-    for i, threshold in enumerate(thresholds):
-
-        score = (decoded_spots[i]) - (false_discovery_rates[i] **3)
-
-        if score > best_score:
-            best_score = score
-            best_threshold = threshold
-
-    return best_threshold
-
 
 def mode_first(data):
     
@@ -124,61 +90,71 @@ def mode_first(data):
     return modes[0] if modes else None
 
 
-def get_fdr(empties, total, n_gene_panel=242, n_emptyBarcodes=16):
-    return (empties / total) * (n_gene_panel / n_emptyBarcodes)
+def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
 
+    empty_n = len(empty_barcodes)
+    if remove_genes is not None: 
+        panel_n = (n_genesPanel - len(remove_genes) + empty_n)
+    else:
+        panel_n = (n_genesPanel + empty_n)
+    
+    return (empties / total) * (panel_n / empty_n)
 
-def auto_threshold(*args):
-        
+def auto_threshold(n_genesPanel, empty_barcodes, remove_genes, invalid_codes, *args):
+    
+    empty_barcodes = json.load(open(empty_barcodes, 'r'))
+    remove_genes   = json.load(open(remove_genes, 'r'))
+    invalid_codes  = json.load(open(invalid_codes, 'r')) 
 
-        df_general = pd.DataFrame(columns=['threshold', '#Detected', '#Decoded', 'Percent', 'FDR', 'Picked_thresh'])
+    df_general = pd.DataFrame(columns=['fov', 'threshold', '#Detected', '#Decoded', 'Percent', 'FDR'])
 
-        for path in args:
-            
-            components = path.split('/')
-            filename = components[-1]
-            fov_name = filename.split('-')[0]
-            last_part = filename.split('-')[-1]
-            threshold = float(last_part[:-4])
+    for path in args:
+        components = path.split('/')
+        filename = components[-1]
+        fov_name = filename.split('-')[0]
+        last_part = filename.split('-')[-1]
+        threshold = float(last_part[:-4])
+        df = pd.read_csv(path)
 
-            df = pd.read_csv(path)
+        filtered_df = df[df['passes_thresholds']==True]
+        filtered_df = filtered_df[~filtered_df['target'].isin(empty_barcodes)]
+        filtered_df = filtered_df[~filtered_df['target'].isin(remove_genes)]
+        filtered_df = filtered_df[~filtered_df['target'].isin(invalid_codes)]
 
-            filtered_df = df[df['passes_thresholds']==True]
-            filtered_df = filtered_df[~filtered_df['target'].isin(empty_barcodes)]
-            filtered_df = filtered_df[~filtered_df['target'].isin(remove_genes)]
-            filtered_df = filtered_df[~filtered_df['target'].isin(invalid_codes)]
+        total_filtered_count = len(filtered_df)
+        empty_barcodes_count = df[df['target'].isin(empty_barcodes)].shape[0]
+        invalid_codes_count = df[df['target'].isin(invalid_codes)].shape[0]
 
-            total_filtered_count = len(filtered_df)
-            empty_barcodes_count = df[df['target'].isin(empty_barcodes)].shape[0]
-            invalid_codes_count = df[df['target'].isin(invalid_codes)].shape[0]
+        df_general = df_general.append({
+            'fov': fov_name,
+            'threshold': threshold,
+            '#Detected': len(df),
+            '#Decoded': total_filtered_count,
+            'Percent': total_filtered_count/len(df) * 100,
+            'FDR': get_fdr(empty_barcodes_count, len(df), n_genesPanel, empty_barcodes, remove_genes)}, ignore_index=True)
 
-            df_general = df_general.append({'threshold': threshold,
-                        '#Detected': len(df),
-                        '#Decoded': total_filtered_count,
-                        'Percent': total_filtered_count/len(df) * 100,
-                        'FDR': get_fdr(empty_barcodes_count, len(df))}, ignore_index=True)
-        
-        thresholds = df_general['threshold']
-        detected_spots = df_general['#Detected']
-        decoded_spots = df_general['#Decoded']
-        false_discovery_rates = df_general['FDR']
+    results = df_general.groupby('fov').agg({
+    'threshold': lambda x: x.tolist(),
+    'FDR': lambda x: x.tolist(),
+    '#Decoded': lambda x: x.tolist()
+    }).reset_index()
+    scores = []
+    for index, row in results.iterrows():
+        fov_name = row['fov']
+        thresholds = row['threshold']
+        fdrs = row['FDR']
+        decoded_spots = row['#Decoded']
+        scores.append(select_best_threshold(thresholds, fdrs, decoded_spots))
+    picked_threshold = mode_first(scores)
+    plot_report(results, picked_threshold)
 
-        arr = [
-            select_best_threshold1(thresholds, detected_spots, decoded_spots, false_discovery_rates),
-            select_best_threshold2(thresholds, detected_spots, decoded_spots, false_discovery_rates),
-            select_best_threshold3(thresholds, detected_spots, decoded_spots, false_discovery_rates),
-        ]
-
-        picked_threshold = mode_first(arr)
-        plot_report(thresholds, false_discovery_rates, decoded_spots, picked_threshold)
-
-        with open('picked_threshold.txt', 'w') as file:
-                file.write(str(picked_threshold))
+    with open('picked_threshold.txt', 'w') as file:
+            file.write(str(picked_threshold))
         
     
 if __name__ == "__main__":
-    
+    import fire
     cli = {
-        "find_threshold": auto_threshold,
+        "autocompute_thr": auto_threshold
     }
     fire.Fire(cli)

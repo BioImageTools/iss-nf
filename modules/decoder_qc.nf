@@ -1,9 +1,8 @@
-//pythonScript = "${workflow.projectDir}/bin/decoder_qc.py"
-pythonScript = "${workflow.projectDir}/bin/decoder_qc_interactive.py"
-
+pythonScript = "${workflow.projectDir}/bin/decoder_qc.py"
 
 process DECODER_QC {
-    //debug true
+    
+    debug true
     label 'long'
 
     input:
@@ -14,6 +13,6 @@ process DECODER_QC {
 
     script:
     """
-    python ${pythonScript} $decoded_csv ${params.PoSTcode}
+    python ${pythonScript} $decoded_csv ${params.PoSTcode} ${params.n_gene_panel} ${params.empty_barcodes} ${params.remove_genes} ${params.invalid_codes} ${params.MICROM_PER_PX} ${params.desired_genes} ${params.housekeepers}
     """
 }

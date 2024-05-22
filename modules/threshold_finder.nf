@@ -2,6 +2,8 @@ pythonScript = "${workflow.projectDir}/bin/threshold_finder.py"
 
 process THRESHOLD_FINDER {
 
+    debug true
+    
     input:
     path(starfish_tables)
 
@@ -11,6 +13,6 @@ process THRESHOLD_FINDER {
     
     script:
     """
-    python ${pythonScript} find_threshold $starfish_tables
+    python ${pythonScript} autocompute_thr ${params.n_gene_panel} ${params.empty_barcodes} ${params.remove_genes} ${params.invalid_codes} $starfish_tables 
     """
 }
