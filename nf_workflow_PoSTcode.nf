@@ -21,7 +21,6 @@ include { MERGE_HTML } from './modules/merge_html.nf'
 include { CONCAT_CSV } from './modules/concat_csv.nf'
 include { CONCAT_NPY } from './modules/concat_npy.nf'
 
-
 def filter_channel(image_id) {
     if (image_id.contains('anchor_dots')) {
         return 'anchor_dots'
@@ -33,7 +32,6 @@ def filter_channel(image_id) {
         return 'primary'
     }
 }
-
 
 workflow {
 
@@ -80,7 +78,7 @@ workflow {
             }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.005
+    def min_thr = 0.007
     def max_thr = 0.009
     def n_vals = 10
 
@@ -97,7 +95,9 @@ workflow {
     decoding_results = SPOT_FINDER_1(tuple_with_all, only_fov_ch, only_thr_ch)
     starfish_tables = decoding_results[1].toList()
     
-    threshold_results = THRESHOLD_FINDER(starfish_tables) 
+    threshold_results = THRESHOLD_FINDER(
+         Channel.fromPath(params.ExpMetaJSON),
+         starfish_tables) 
     picked_threshold = threshold_results[0].splitText()
     picked_threshold_html = threshold_results[1]
 
@@ -123,12 +123,12 @@ workflow {
             it -> it.baseName
         }      
         if (csv_name.contains("postcode_decoding_failed")==true){
-            decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table)
+            decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table, params.ExpMetaJSON)
         }else{
-             decoder_html = DECODER_QC_PoSTcode(postcode_results) 
+             decoder_html = DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON) 
         }      
     }else{
-        decoder_html = DECODER_QC_Starfish(starfish_table)
+        decoder_html = DECODER_QC_Starfish(starfish_table, params.ExpMetaJSON)
     }
     
     // Concatenate HTML files from all processes

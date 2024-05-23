@@ -4,10 +4,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 import plotly.graph_objects as go
-import sys
 import base64
 import seaborn as sns
-import json
+import exp_metadata_json as exp_meta
+import fire
 
 def print_in_a_box(text, margin=5):
     print('', '_' * (len(text) + (margin * 2)))
@@ -59,7 +59,7 @@ def filter_results(spots, decoding_method, column_map, empty_barcodes=None, remo
     """
     Collect filtered results of chosen decoded method (either PoSTcode or Starfish).
     """
-    if remove_genes is not None: 
+    if len(remove_genes) !=0: 
         
         spots = spots[spots[column_map['passes_thresholds'][decoding_method]] & \
                                         ~spots[column_map['target'][decoding_method]].isin(remove_genes)]
@@ -74,7 +74,7 @@ def filter_results(spots, decoding_method, column_map, empty_barcodes=None, remo
 def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
 
     empty_n = len(empty_barcodes)
-    if remove_genes is not None: 
+    if len(remove_genes) !=0: 
         panel_n = (n_genesPanel - len(remove_genes) + empty_n)
     else:
         panel_n = (n_genesPanel + empty_n)
@@ -82,13 +82,28 @@ def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
     return (empties / total) * (panel_n / empty_n)
 
 
-def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX, desired_genes, housekeepers):
+def decoder_qc(table, experiment_metadata_json, postcode):
 
-    empty_barcodes = json.load(open(empty_barcodes, 'r'))
-    remove_genes   = json.load(open(remove_genes, 'r'))
-    invalid_codes  = json.load(open(invalid_codes, 'r'))
-    desired_genes  = json.load(open(desired_genes, 'r')) 
-    housekeepers  = json.load(open(housekeepers, 'r'))  
+    ExpJsonParser = exp_meta.ExpJsonParser(experiment_metadata_json)
+    
+    empty_barcodes = ExpJsonParser.meta['empty_barcodes']
+    try:
+        remove_genes = ExpJsonParser.meta["remove_genes"]
+    except:
+        remove_genes = []
+    invalid_codes = ExpJsonParser.meta["invalid_codes"]
+    try:
+        desired_genes = ExpJsonParser.meta["desired_genes"]
+    except:
+        desired_genes = None
+    try:
+        housekeepers = ExpJsonParser.meta["housekeepers"]
+    except:
+        housekeepers = None
+        
+    n_gene_panel = ExpJsonParser.meta["total_number_genes"]
+    MICROM_PER_PX = ExpJsonParser.meta["MICROM_PER_PX"]
+
 
     current_dir = os.getcwd()
     
@@ -227,42 +242,42 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         housekeepers = [gene_counts.index[1],gene_counts.index[-1]]
     empty_barcode_counts = df2[df2.index.isin(empty_barcodes)]
     lob = get_lob(empty_barcode_counts.iloc[:, 0])
-    housekeeper_counts = df2[df2.index.isin(housekeepers)]
-    regular_target_counts = df2[~df2.index.isin(housekeepers)]
-    regular_target_counts = regular_target_counts[~regular_target_counts.index.isin(empty_barcodes)]
+    if str(lob) not in 'nan':
+        housekeeper_counts = df2[df2.index.isin(housekeepers)]
+        regular_target_counts = df2[~df2.index.isin(housekeepers)]
+        regular_target_counts = regular_target_counts[~regular_target_counts.index.isin(empty_barcodes)]
 
-    fig, ax = plt.subplots(figsize=(12, 6))
+        fig, ax = plt.subplots(figsize=(12, 6))
 
-    ax.scatter(
-        regular_target_counts['i'], regular_target_counts['xc'],
-        s=12,
-        facecolor='k',
-        label='Targets',
-    )
-    ax.scatter(
-        empty_barcode_counts['i'], empty_barcode_counts['xc'],
-        s=36,
-        facecolor='r',
-        label='Empty barcodes',
-    )
-    ax.scatter(
-        housekeeper_counts['i'], housekeeper_counts['xc'],
-        s=36,
-        facecolor='lightgreen',
-        label='Housekeepers',
-    )
+        ax.scatter(
+            regular_target_counts['i'], regular_target_counts['xc'],
+            s=12,
+            facecolor='k',
+            label='Targets',
+        )
+        ax.scatter(
+            empty_barcode_counts['i'], empty_barcode_counts['xc'],
+            s=36,
+            facecolor='r',
+            label='Empty barcodes',
+        )
+        ax.scatter(
+            housekeeper_counts['i'], housekeeper_counts['xc'],
+            s=36,
+            facecolor='lightgreen',
+            label='Housekeepers',
+        )
 
-    plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
+        plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
 
-    ax.set_yscale('log')
-    ax.set_title('Starfish results', fontsize=14)
-    ax.set_ylabel('Spot counts', fontsize=14)
-    ax.set_xlabel('Target panel', fontsize=14)
-    ax.legend()
-    plt.tight_layout() 
-    plt.savefig('Starfish_Result.png')
-    plt.close()
-
+        ax.set_yscale('log')
+        ax.set_title('Starfish results', fontsize=14)
+        ax.set_ylabel('Spot counts', fontsize=14)
+        ax.set_xlabel('Target panel', fontsize=14)
+        ax.legend()
+        plt.tight_layout() 
+        plt.savefig('Starfish_Result.png')
+        plt.close()
     #####################################################
     df3 = empty_barcode_counts.iloc[:, 0:1].rename(columns={empty_barcode_counts.columns[0]: 'Spot count'})
 
@@ -320,19 +335,20 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         height=400,  
         width=600    
     )
-    fig_empty_barcodes = go.Figure(go.Bar(
-        y=df3.index,
-        x=df3['Spot count'],
-        orientation='h',
-        marker_color='#FF7F50'
-    ))
-    fig_empty_barcodes.update_layout(
-        title='Spot counts for Empty Barcodes in Starfish',
-        xaxis=dict(title='Spot count'),
-        yaxis=dict(title='Empty barcodes'),
-        height=400, 
-        width=600    
-    )
+    if str(lob) not in 'nan':
+        fig_empty_barcodes = go.Figure(go.Bar(
+            y=df3.index,
+            x=df3['Spot count'],
+            orientation='h',
+            marker_color='#FF7F50'
+        ))
+        fig_empty_barcodes.update_layout(
+            title='Spot counts for Empty Barcodes in Starfish',
+            xaxis=dict(title='Spot count'),
+            yaxis=dict(title='Empty barcodes'),
+            height=400, 
+            width=600    
+        )
        
     html_content = '<html><head><title>Interactive Decoding Plots</title></head><body>'
     html_content += '<h1>Gene Spot Counts in Starfish</h1>'
@@ -341,8 +357,9 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
     html_content += fig_top_genes.to_html(full_html=False, include_plotlyjs='cdn')
     html_content += '<h1>Bottom 25 Genes by % Total Spots in Starfish</h1>'
     html_content += fig_bottom_genes.to_html(full_html=False, include_plotlyjs='cdn')
-    html_content += '<h1>Spot counts for Empty Barcodes in Starfish</h1>'
-    html_content += fig_empty_barcodes.to_html(full_html=False, include_plotlyjs='cdn')
+    if str(lob) not in 'nan':
+        html_content += '<h1>Spot counts for Empty Barcodes in Starfish</h1>'
+        html_content += fig_empty_barcodes.to_html(full_html=False, include_plotlyjs='cdn')
     html_content += '</body></html>'
     
     if postcode: 
@@ -476,39 +493,40 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
 
             empty_barcode_counts = df2[df2.index.isin(empty_barcodes)]
             lob = get_lob(empty_barcode_counts.iloc[:, 0])
-            housekeeper_counts = df2[df2.index.isin(housekeepers)]
-            regular_target_counts = df2[~df2.index.isin(housekeepers)]
-            regular_target_counts = regular_target_counts[~regular_target_counts.index.isin(empty_barcodes)]
+            if str(lob) not in 'nan':
+                housekeeper_counts = df2[df2.index.isin(housekeepers)]
+                regular_target_counts = df2[~df2.index.isin(housekeepers)]
+                regular_target_counts = regular_target_counts[~regular_target_counts.index.isin(empty_barcodes)]
 
-            fig, ax = plt.subplots(figsize=(12, 6))
+                fig, ax = plt.subplots(figsize=(12, 6))
 
-            ax.scatter(
-                regular_target_counts['i'], regular_target_counts['xc'],
-                s=12,
-                facecolor='k',
-                label='Targets',
-            )
-            ax.scatter(
-                empty_barcode_counts['i'], empty_barcode_counts['xc'],
-                s=36,
-                facecolor='r',
-                label='Empty barcodes',
-            )
-            ax.scatter(
-                housekeeper_counts['i'], housekeeper_counts['xc'],
-                s=36,
-                facecolor='lightgreen',
-                label='Housekeepers',
-            )
-            plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
-            ax.set_yscale('log')
-            ax.set_title('PoSTcode results', fontsize=14)
-            ax.set_ylabel('Spot counts', fontsize=14)
-            ax.set_xlabel('Target panel', fontsize=14)
-            ax.legend()
-            plt.tight_layout() 
-            plt.savefig('Postcode_Result.png')
-            plt.close()
+                ax.scatter(
+                    regular_target_counts['i'], regular_target_counts['xc'],
+                    s=12,
+                    facecolor='k',
+                    label='Targets',
+                )
+                ax.scatter(
+                    empty_barcode_counts['i'], empty_barcode_counts['xc'],
+                    s=36,
+                    facecolor='r',
+                    label='Empty barcodes',
+                )
+                ax.scatter(
+                    housekeeper_counts['i'], housekeeper_counts['xc'],
+                    s=36,
+                    facecolor='lightgreen',
+                    label='Housekeepers',
+                )
+                plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
+                ax.set_yscale('log')
+                ax.set_title('PoSTcode results', fontsize=14)
+                ax.set_ylabel('Spot counts', fontsize=14)
+                ax.set_xlabel('Target panel', fontsize=14)
+                ax.legend()
+                plt.tight_layout() 
+                plt.savefig('Postcode_Result.png')
+                plt.close()
             #####################################################
             df3 = empty_barcode_counts.iloc[:, 0:1].rename(columns={empty_barcode_counts.columns[0]: 'Spot count'})
 
@@ -577,19 +595,20 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
                 height=400,  
                 width=600    
             )
-            fig_empty_barcodes = go.Figure(go.Bar(
-                y=df3.index,
-                x=df3['Spot count'],
-                orientation='h',
-                marker_color='#FF7F50'
-            ))
-            fig_empty_barcodes.update_layout(
-                title='Spot counts for Empty Barcodes in PoSTcode',
-                xaxis=dict(title='Spot count'),
-                yaxis=dict(title='Empty barcodes'),
-                height=400, 
-                width=600    
-            )
+            if str(lob) not in 'nan':
+                fig_empty_barcodes = go.Figure(go.Bar(
+                    y=df3.index,
+                    x=df3['Spot count'],
+                    orientation='h',
+                    marker_color='#FF7F50'
+                ))
+                fig_empty_barcodes.update_layout(
+                    title='Spot counts for Empty Barcodes in PoSTcode',
+                    xaxis=dict(title='Spot count'),
+                    yaxis=dict(title='Empty barcodes'),
+                    height=400, 
+                    width=600    
+                )
 
             html_content += '<h1>Non-decoded PoSTcode spot counts</h1>'
             html_content += fig_non_decoded.to_html(full_html=False, include_plotlyjs='cdn')
@@ -599,8 +618,9 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
             html_content += fig_top_genes.to_html(full_html=False, include_plotlyjs='cdn')
             html_content += '<h1>Bottom 25 Genes by % Total Spots in PoSTcode</h1>'
             html_content += fig_bottom_genes.to_html(full_html=False, include_plotlyjs='cdn')
-            html_content += '<h1>Spot counts for Empty Barcodes in PoSTcode</h1>'
-            html_content += fig_empty_barcodes.to_html(full_html=False, include_plotlyjs='cdn')
+            if str(lob) not in 'nan':
+                html_content += '<h1>Spot counts for Empty Barcodes in PoSTcode</h1>'
+                html_content += fig_empty_barcodes.to_html(full_html=False, include_plotlyjs='cdn')
             html_content += '</body></html>'
         except:
             error_message = "PoSTcode failed: Negative eigenvalues affect the covariance matrix utilized in multivariate normal distribution, requiring it to be positive definite when employed by the PoSTcode."
@@ -631,13 +651,7 @@ def decoder_qc(table, postcode, n_gene_panel, empty_barcodes, remove_genes, inva
         
 if __name__ == "__main__":
 
-    csv_path = (sys.argv[1])
-    postcode = (sys.argv[2])
-    n_gene_panel = int(sys.argv[3])
-    empty_barcodes = (sys.argv[4])
-    remove_genes = (sys.argv[5])
-    invalid_codes = (sys.argv[6])
-    MICROM_PER_PX = float(sys.argv[7])
-    desired_genes= (sys.argv[8])
-    housekeepers= (sys.argv[9])
-    decoder_qc(csv_path, postcode, n_gene_panel, empty_barcodes, remove_genes, invalid_codes, MICROM_PER_PX, desired_genes, housekeepers)
+    cli = {
+        "create_qc": decoder_qc
+    }
+    fire.Fire(cli)

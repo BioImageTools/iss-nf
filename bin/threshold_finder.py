@@ -3,8 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import base64
-import sys
 import json
+import exp_metadata_json as exp_meta
+import fire
 
 def plot_report(results, picked_threshold):
     plt.figure(figsize=(10, 8))
@@ -67,11 +68,11 @@ def filter_none_values(thresholds, fdrs, decoded_spots):
 
     return filtered_thresholds, filtered_fdrs, filtered_decoded_spots
 
-def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.6):
+def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.7):
     thresholds, fdrs, decoded_spots = filter_none_values(thresholds, fdrs, decoded_spots)
     
     if not thresholds:  # Check if all were None then return a hardcoded value 0.001
-        return 0.001
+        return 0.003
     
     scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs, decoded_spots)]
     best_threshold_index = np.argmax(scores)
@@ -93,18 +94,26 @@ def mode_first(data):
 def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
 
     empty_n = len(empty_barcodes)
-    if remove_genes is not None: 
+    if len(remove_genes) != 0: 
         panel_n = (n_genesPanel - len(remove_genes) + empty_n)
     else:
         panel_n = (n_genesPanel + empty_n)
     
     return (empties / total) * (panel_n / empty_n)
 
-def auto_threshold(n_genesPanel, empty_barcodes, remove_genes, invalid_codes, *args):
+def auto_threshold(experiment_metadata_json, *args):
     
-    empty_barcodes = json.load(open(empty_barcodes, 'r'))
-    remove_genes   = json.load(open(remove_genes, 'r'))
-    invalid_codes  = json.load(open(invalid_codes, 'r')) 
+    ExpJsonParser = exp_meta.ExpJsonParser(experiment_metadata_json)
+    
+    empty_barcodes = ExpJsonParser.meta['empty_barcodes']
+    try:
+        remove_genes = ExpJsonParser.meta["remove_genes"]
+    except:
+        remove_genes = []
+
+    invalid_codes = ExpJsonParser.meta["invalid_codes"]        
+    n_genesPanel = ExpJsonParser.meta["total_number_genes"]
+    
 
     df_general = pd.DataFrame(columns=['fov', 'threshold', '#Detected', '#Decoded', 'Percent', 'FDR'])
 
@@ -153,7 +162,7 @@ def auto_threshold(n_genesPanel, empty_barcodes, remove_genes, invalid_codes, *a
         
     
 if __name__ == "__main__":
-    import fire
+
     cli = {
         "autocompute_thr": auto_threshold
     }
