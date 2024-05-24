@@ -3,28 +3,31 @@ import numpy as np
 from registration import *
 from starfish.spots import DecodeSpots
 from starfish.core.imagestack.imagestack import ImageStack
-from starfish.types import Axes, FunctionSource
-from starfish.spots import FindSpots, DecodeSpots, AssignTargets
+from starfish.types import Axes
+from starfish.spots import FindSpots, DecodeSpots
 from starfish.core.types import SpotFindingResults
 from starfish.core.intensity_table.decoded_intensity_table import DecodedIntensityTable
 from starfish import Experiment, FieldOfView
-from starfish.image import LearnTransform, ApplyTransform, Filter, Segment
+from starfish.image import LearnTransform, ApplyTransform, Filter
 from starfish.core.spots.DecodeSpots.trace_builders import build_spot_traces_exact_match
+  
 
 #### Auxiliary functions:
 def register(
     image_stack: ImageStack,
     reference_stack: ImageStack,
-) -> ImageStack:
-    learn_translation = LearnTransform.Translation(
-        reference_stack=reference_stack, axes=Axes.ROUND, upsampling=100)
-
-    transforms_list = learn_translation.run(
-        image_stack.reduce({Axes.CH, Axes.ZPLANE}, func='max'))
+    ) -> ImageStack:
 
     warp = ApplyTransform.Warp()
-    registered = warp.run(image_stack, transforms_list=transforms_list,
-                            in_place=False, verbose=False)
+    registered_images = []
+    for i in range(reference_stack.shape[Axes.ROUND]):
+        learn_translation = LearnTransform.Translation(reference_stack=reference_stack.sel({Axes.ROUND: i}), axes=Axes.CH, upsampling=100)
+        transforms_list = learn_translation.run(image_stack.sel({Axes.ROUND: i}).reduce({Axes.CH, Axes.ZPLANE}, func="max"))
+        registered_images.append(warp.run(image_stack.sel({Axes.ROUND: i}), transforms_list=transforms_list,  in_place=False, verbose=True))
+
+    data_list = [stack.xarray for stack in registered_images]
+    concatenated_data = np.concatenate(data_list, axis=0)
+    registered = ImageStack.from_numpy(concatenated_data)
 
     return registered
 
@@ -48,7 +51,7 @@ def find_spots(
     """Detect spots using laplacian of gaussians approach."""
     bd = FindSpots.BlobDetector(
                 min_sigma=1,
-                max_sigma=2,
+                max_sigma=3,
                 num_sigma=30,
                 threshold=thresh,
                 is_volume=False,
@@ -69,70 +72,49 @@ def decode(spots: SpotFindingResults, experiment) -> DecodedIntensityTable:
 
     return decoded
 
-"""
-def decode_starfish(spots: SpotFindingResults, json_path) -> DecodedIntensityTable:
-
-    exp = Experiment.from_json(json_path)
-    codebook = exp.codebook
-    decoder = DecodeSpots.PerRoundMaxChannel(
-        codebook=codebook,
-    )
-    decoded_spots = {}
-    for fov_name, spot in spots.items():
-        decoded = decoder.run(spots=spot)
-        decoded_spots[fov_name] = decoded
-
-    return decoded_spots
-"""
-
 def process_fov(
     images_dir_path,
     fov_name,
     threshold,
     radius=5,
     filt=True,
+    local_reg=not True
 ):
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')
-    dapi_rounds = fov.get_image('nuclei')
-    #dapi_ref = fov.get_image('anchor_nuclei')
-
-    #if normalize:
-    #    primary = _normalize(image_stack=primary)
-            
-    #if True:
-        #if reg_withDapi:
-        #primary_registered = self._register_new(
-        #                                 fov_name,
-        #                                 image_stack=primary,
-        #                                 dapi_ref=dapi_ref,
-        #                                 dapi_round=dapi_rounds
-        #                                 )
-        #    else:
-    #primary_registered = register(
-    #                        reference_stack=reference,
-    #                        image_stack=primary
-    #                        )
-    if filt:
-        filtered_imgs, filtered_ref = filter(radius,
-                                reference_stack=reference,
-                                image_stack=primary,
-                                )
-    else:
-        filtered_ref = reference
-        filtered_imgs = primary
-
-    spots = find_spots(image_stack=filtered_imgs,
-                       reference_stack=filtered_ref, thresh=threshold)
-
-    #decoded = decode(spots, exp)
     
+    if filt and not local_reg:
+        primary, reference = filter(radius,
+                                    reference_stack=reference,
+                                    image_stack=primary)
+
+    if not filt and local_reg:
+        primary = register(image_stack=primary,
+                           reference_stack=reference
+                        )
+
+    if filt and local_reg:
+        
+        primary = register(
+                            image_stack=primary,
+                           reference_stack=reference
+                            )
+        primary,  reference= filter(
+                                    radius,
+                                    reference_stack=reference,
+                                    image_stack=primary
+                                    )
+        
+
+    spots = find_spots(image_stack=primary,
+                       reference_stack=reference, 
+                       thresh=threshold
+                       )
+
     spots4postcode = build_spot_traces_exact_match(spots)
-    #print(f"{fov_name}"*10)
     np.save(f'{fov_name}.npy', spots4postcode)
-    # Do starfish decoding already in here:
     decoded = decode(spots, exp)
     decoded.to_features_dataframe().to_csv(f'{fov_name}-starfish_results-{threshold}.csv', index=False)
 

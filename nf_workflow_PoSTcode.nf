@@ -78,8 +78,8 @@ workflow {
             }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.007
-    def max_thr = 0.009
+    def min_thr = 0.003921568627451
+    def max_thr = 0.008
     def n_vals = 10
 
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
@@ -132,6 +132,6 @@ workflow {
     }
     
     // Concatenate HTML files from all processes
-    // ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
-    // MERGE_HTML(ch_all_html_files) 
+    ch_all_html_files = decoder_html.merge(picked_threshold_html)
+    MERGE_HTML(ch_all_html_files) 
 }
