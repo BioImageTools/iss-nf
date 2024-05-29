@@ -17,17 +17,16 @@ def register(
     image_stack: ImageStack,
     reference_stack: ImageStack,
     ) -> ImageStack:
+    
+    learn_translation = LearnTransform.Translation(reference_stack=reference_stack, axes=Axes.ROUND, upsampling=100)
+    transforms_list = learn_translation.run(image_stack.reduce({Axes.CH, Axes.ZPLANE}, func='max'))
+
+    # learn_translation = LearnTransform.Translation(reference_stack=reference_stack.reduce((Axes.ROUND, Axes.ZPLANE), func='max'), axes=Axes.ROUND, upsampling=100)
+    # transforms_list = learn_translation.run(
+    # image_stack.reduce({Axes.CH, Axes.ZPLANE}, func="max"))
 
     warp = ApplyTransform.Warp()
-    registered_images = []
-    for i in range(reference_stack.shape[Axes.ROUND]):
-        learn_translation = LearnTransform.Translation(reference_stack=reference_stack.sel({Axes.ROUND: i}), axes=Axes.CH, upsampling=100)
-        transforms_list = learn_translation.run(image_stack.sel({Axes.ROUND: i}).reduce({Axes.CH, Axes.ZPLANE}, func="max"))
-        registered_images.append(warp.run(image_stack.sel({Axes.ROUND: i}), transforms_list=transforms_list,  in_place=False, verbose=True))
-
-    data_list = [stack.xarray for stack in registered_images]
-    concatenated_data = np.concatenate(data_list, axis=0)
-    registered = ImageStack.from_numpy(concatenated_data)
+    registered = warp.run(image_stack, transforms_list=transforms_list,  in_place=False, verbose=True)
 
     return registered
 

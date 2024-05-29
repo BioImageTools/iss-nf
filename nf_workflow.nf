@@ -92,7 +92,7 @@ workflow {
         Channel.fromPath(params.inputMovImagesLearnPath).toList())
         .combine(Channel.fromPath(params.inputRefImagePath).combine(anch_path))
 
-    reg_html = REGISTER_QC(reg_qc_inputs)
+    // reg_html = REGISTER_QC(reg_qc_inputs)
  
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
@@ -156,8 +156,8 @@ workflow {
                 }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.008
-    def max_thr = 0.01
+    def min_thr = 0.00392156
+    def max_thr = 0.008
     def n_vals = 3
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
@@ -171,9 +171,11 @@ workflow {
                 }
     
     spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
-        
     starfish_tables = spots_detected_ch[1].toList() 
-    threshold_results = THRESHOLD_FINDER(starfish_tables)
+
+    threshold_results = THRESHOLD_FINDER(
+        Channel.fromPath(params.ExpMetaJSON),
+        starfish_tables) 
     picked_threshold = threshold_results[0].splitText()
     picked_threshold_html = threshold_results[1]
 
@@ -198,15 +200,15 @@ workflow {
             it -> it.baseName
         }      
         if (csv_name.contains("postcode_decoding_failed")==true){
-            decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table)
+            decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table, params.ExpMetaJSON)
         }else{
-             decoder_html = DECODER_QC_PoSTcode(postcode_results) 
+             decoder_html = DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON) 
         }      
     }else{
-        decoder_html = DECODER_QC_Starfish(starfish_table)
+        decoder_html = DECODER_QC_Starfish(starfish_table, params.ExpMetaJSON)
     }
     
     // Concatenate HTML files from all processes
-    ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
+    ch_all_html_files = decoder_html.merge(picked_threshold_html)
     MERGE_HTML(ch_all_html_files) 
 }
