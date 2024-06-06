@@ -79,7 +79,7 @@ def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.5):
     if not thresholds:  # Check if all were None
         return 0.003
     
-    decoded_spots_percentage = normalize_data(decoded_spots)
+    decoded_spots_percentage = min_max_normalize(decoded_spots)
     scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs, decoded_spots_percentage)]
     best_threshold_index = np.argmax(scores)
     best_threshold = thresholds[best_threshold_index]
