@@ -52,8 +52,13 @@ def plot_report(results, picked_threshold):
     with open(output_html_path, 'w') as f:
         f.write(html_content)
 
-def score(fdr_percentage, decoded_spots, fdr_weight):
-    return (1 - fdr_weight) * decoded_spots - fdr_weight * 100 * fdr_percentage
+def score(fdr_percentage, decoded_spots_percentage, fdr_weight):
+    return (1 - fdr_weight) * decoded_spots_percentage - fdr_weight * fdr_percentage
+
+def min_max_normalize(data):
+    min_val = min(data)
+    max_val = max(data)
+    return [(x - min_val) / (max_val - min_val) for x in data]
 
 def filter_none_values(thresholds, fdrs, decoded_spots):
     filtered_thresholds = []
@@ -68,13 +73,14 @@ def filter_none_values(thresholds, fdrs, decoded_spots):
 
     return filtered_thresholds, filtered_fdrs, filtered_decoded_spots
 
-def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.7):
+def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.5):
     thresholds, fdrs, decoded_spots = filter_none_values(thresholds, fdrs, decoded_spots)
     
-    if not thresholds:  # Check if all were None then return a hardcoded value 0.001
+    if not thresholds:  # Check if all were None
         return 0.003
     
-    scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs, decoded_spots)]
+    decoded_spots_percentage = normalize_data(decoded_spots)
+    scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs, decoded_spots_percentage)]
     best_threshold_index = np.argmax(scores)
     best_threshold = thresholds[best_threshold_index]
     return best_threshold

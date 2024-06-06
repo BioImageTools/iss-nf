@@ -140,12 +140,10 @@ def stitch_channel(ch_idx, round_idx, input_dir, output_dir):
                 stitched_img[Y:Y+1000, X:X+1000] = tiff.memmap(os.path.join(input_dir, im_name))
     output_name = f"r{round_idx}_{ch_idx}.tif"
     if ch_idx == '490LS':
-        tiff.imwrite(os.path.join(output_dir, 'anchor_dots.tif'), stitched_img.astype(np.uint16))
-    elif ch_idx == 'DAPI' and round_idx == 1:
-        tiff.imwrite(os.path.join(output_dir, output_name), stitched_img.astype(np.uint16))
-        tiff.imwrite(os.path.join(output_dir, 'anchor_nuclei.tif'), stitched_img.astype(np.uint16))
+        output_name = f"anchor_dots_r{round_idx}.tif"
     else:
-        tiff.imwrite(os.path.join(output_dir, output_name), stitched_img.astype(np.uint16))
+        output_name = f"r{round_idx}_{ch_idx}.tif"
+    tiff.imwrite(os.path.join(output_dir, output_name), stitched_img.astype(np.uint16))
     
 def stitch_experiment(input_dir, output_dir):
     try:
@@ -154,14 +152,14 @@ def stitch_experiment(input_dir, output_dir):
         pass
     
     total_rounds = [1,2,3,4]
-    channels = ['DAPI',"425", "488", "568", "647"]
+    channels = ['490LS', 'DAPI',"425", "488", "568", "647"]
     for ch in channels:
         for r in total_rounds:
             #print(ch, r)
             stitch_channel(ch, r, input_dir, output_dir)
             
-    stitch_channel('490LS', 1, input_dir, output_dir)
-    stitch_channel('DAPI', 1, input_dir, output_dir)
+    # stitch_channel('490LS', 1, input_dir, output_dir)
+    # stitch_channel('DAPI', 1, input_dir, output_dir)
 
 
 def robust_min_max_norm(
