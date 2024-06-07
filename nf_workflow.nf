@@ -156,7 +156,7 @@ workflow {
                 }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.0008 //0.00392156
+    def min_thr = 0.001 //0.00392156
     def max_thr = 0.01
     def n_vals = 10
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)

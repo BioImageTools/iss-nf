@@ -59,6 +59,13 @@ def min_max_normalize(data):
     max_val = max(data)
     return [(x - min_val) / (max_val - min_val) for x in data]
 
+def percentile_based_normalization(data, lower_percentile=10, upper_percentile=90):
+    min_percentile_value = np.percentile(data, lower_percentile)
+    max_percentile_value = np.percentile(data, upper_percentile)
+    normalized_data = (data - min_percentile_value) / (max_percentile_value - min_percentile_value)   
+    normalized_data = np.clip(normalized_data, 0, 1)
+    return normalized_data
+
 def filter_none_values(thresholds, fdrs, decoded_spots):
     filtered_thresholds = []
     filtered_fdrs = []
@@ -78,8 +85,8 @@ def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.7):
     if not thresholds:  # Check if all were None
         return 0.003
     
-    decoded_norm = min_max_normalize(decoded_spots)
-    fdrs_norm = min_max_normalize(fdrs)
+    decoded_norm = percentile_based_normalization(decoded_spots)
+    fdrs_norm = percentile_based_normalization(fdrs)
     scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs_norm, decoded_norm)]
     best_threshold_index = np.argmax(scores)
     best_threshold = thresholds[best_threshold_index]
