@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 import base64
-import json
 import exp_metadata_json as exp_meta
 import fire
 
@@ -73,14 +72,15 @@ def filter_none_values(thresholds, fdrs, decoded_spots):
 
     return filtered_thresholds, filtered_fdrs, filtered_decoded_spots
 
-def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.5):
+def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.7):
     thresholds, fdrs, decoded_spots = filter_none_values(thresholds, fdrs, decoded_spots)
     
     if not thresholds:  # Check if all were None
         return 0.003
     
-    decoded_spots_percentage = min_max_normalize(decoded_spots)
-    scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs, decoded_spots_percentage)]
+    decoded_norm = min_max_normalize(decoded_spots)
+    fdrs_norm = min_max_normalize(fdrs)
+    scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs_norm, decoded_norm)]
     best_threshold_index = np.argmax(scores)
     best_threshold = thresholds[best_threshold_index]
     return best_threshold
@@ -147,7 +147,8 @@ def auto_threshold(experiment_metadata_json, *args):
             '#Decoded': total_filtered_count,
             'Percent': total_filtered_count/len(df) * 100,
             'FDR': get_fdr(empty_barcodes_count, len(df), n_genesPanel, empty_barcodes, remove_genes)}, ignore_index=True)
-
+        
+    df_general.to_csv('df_general.csv', index=False)
     results = df_general.groupby('fov').agg({
     'threshold': lambda x: x.tolist(),
     'FDR': lambda x: x.tolist(),

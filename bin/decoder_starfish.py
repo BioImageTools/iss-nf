@@ -106,7 +106,6 @@ def process_fov(
                                     image_stack=primary
                                     )
         
-
     spots = find_spots(image_stack=primary,
                        reference_stack=reference, 
                        thresh=threshold
