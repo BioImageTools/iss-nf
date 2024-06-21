@@ -1,10 +1,16 @@
-Instructions for processing mouse brain dataset from PoSTcode publication with iss-nf
-----------------------
-This dataset can be preprocessed in two ways: a) Formating the tiled data and start the iss-nf workflow from the "formatting to spacetx" step. b) Stitch dataset together and run the whole iss-nf workflow. To do this follow the instructions:
+# Mouse brain data
+
+## Download raw data
 
 1. Download the dataset by accessing the following link: https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700
 
 You can then transfer it to the HPC using sftp.
+
+### EMBL data location
+
+- Data is at `/g/cba/exchange/iss-nf-data/mouse-brain/raw`
+
+## Stitch
 
 2a. Read the 'preprocess_postcode_data4iss-nf.py' script in this folder. To preprocess the data as stated by a), run:
 
@@ -18,4 +24,18 @@ NOTE: 'path/2/S-BSST700' should point to that directory, 'S-BSST700'.
 
 NOTE: Here the first argument points to a different folder than 2a.
 
+### EMBL data location
+
+- Data is at `/g/cba/exchange/iss-nf-data/mouse-brain/stitched`
+
+## Run iss-nf
+
 3. Modify the 'postcode_configuration.config' depending on which system are you running the workflow.
+
+### EMBL data location
+
+#### Registered images
+
+- Data is at `/g/cba/exchange/iss-nf-data/mouse-brain/registered`
+
+
