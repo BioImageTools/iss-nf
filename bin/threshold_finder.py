@@ -146,15 +146,16 @@ def auto_threshold(experiment_metadata_json, *args):
         total_filtered_count = len(filtered_df)
         empty_barcodes_count = df[df['target'].isin(empty_barcodes)].shape[0]
         invalid_codes_count = df[df['target'].isin(invalid_codes)].shape[0]
-
-        df_general = df_general.append({
-            'fov': fov_name,
-            'threshold': threshold,
-            '#Detected': len(df),
-            '#Decoded': total_filtered_count,
-            'Percent': total_filtered_count/len(df) * 100,
-            'FDR': get_fdr(empty_barcodes_count, len(df), n_genesPanel, empty_barcodes, remove_genes)}, ignore_index=True)
-        
+        try:
+            df_general = df_general.append({
+                'fov': fov_name,
+                'threshold': threshold,
+                '#Detected': len(df),
+                '#Decoded': total_filtered_count,
+                'Percent': total_filtered_count/len(df) * 100,
+                'FDR': get_fdr(empty_barcodes_count, len(df), n_genesPanel, empty_barcodes, remove_genes)}, ignore_index=True)
+        except:
+            pass
     df_general.to_csv('df_general.csv', index=False)
     results = df_general.groupby('fov').agg({
     'threshold': lambda x: x.tolist(),

@@ -1,6 +1,7 @@
 pythonScript = "${workflow.projectDir}/bin/tile_picker.py"
 
 process TILE_PICKER {
+    label 'small'
 
     input:
     path("*")

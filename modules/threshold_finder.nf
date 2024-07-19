@@ -2,7 +2,7 @@ pythonScript = "${workflow.projectDir}/bin/threshold_finder.py"
 
 process THRESHOLD_FINDER {
 
-    debug true
+    label 'small'
     
     input:
     path(exp_metadata_json)

@@ -1,6 +1,7 @@
 pythonScript = "${workflow.projectDir}/bin/test_postcode_decoder.py"
 
 process POSTCODE_DECODER {
+   
     label 'decoding_postcode'
 
     input:

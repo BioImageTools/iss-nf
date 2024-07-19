@@ -75,8 +75,8 @@ def process_fov(
     images_dir_path,
     fov_name,
     threshold,
-    radius=5,
-    filt=True,
+    radius=3,
+    filt= True,
     local_reg=not True
 ):
     exp = Experiment.from_json('experiment.json')
