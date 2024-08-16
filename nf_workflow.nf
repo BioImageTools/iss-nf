@@ -156,7 +156,7 @@ workflow {
                 }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.001 //0.00392156
+    def min_thr = 0.0008 //0.00392156
     def max_thr = 0.01
     def n_vals = 10
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
@@ -173,9 +173,25 @@ workflow {
     spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
     starfish_tables = spots_detected_ch[1].toList() 
 
+    ///////////////////////////////////////////////
+
+    sorted_detected_spots_ch_init = spots_detected_ch[0].toSortedList() 
+    sorted_starfish_tables_init = spots_detected_ch[1].toSortedList()
+    postCode_input_init = CONCAT_NPY(sorted_detected_spots_ch_init)
+    starfish_table_init = CONCAT_CSV(sorted_starfish_tables_init)
+    postcode_results = POSTCODE_DECODER(
+        params.ExpMetaJSON,
+        Channel.fromPath(params.CodeJSON),
+        starfish_table_init,
+        postCode_input_init 
+    )
+    //////////////////////////////////////////////
+
     threshold_results = THRESHOLD_FINDER(
         Channel.fromPath(params.ExpMetaJSON),
         starfish_tables) 
+    // picked_threshold = threshold_results.splitText()
+
     picked_threshold = threshold_results[0].splitText()
     picked_threshold_html = threshold_results[1]
 
@@ -192,9 +208,10 @@ workflow {
     
     if (params.PoSTcode){
         postcode_results = POSTCODE_DECODER(
+            params.ExpMetaJSON,
             Channel.fromPath(params.CodeJSON),
             starfish_table,
-            postCode_input
+            postCode_input 
         ) 
         csv_name = postcode_results.collect {
             it -> it.baseName

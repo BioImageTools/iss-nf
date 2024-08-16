@@ -21,6 +21,8 @@
     "empty_barcodes": ["Fake1", "Fake2", "Fake3", "Fake4", "Fake5","Fake6", "Fake7", "Fake8", "Fake9", "Fake10", "Fake11", "Fake12"],
     "total_number_genes": 63,
     "MICROM_PER_PX": 0.325,
-    "desired_genes": ["PTPRC_trans5","CD83","CD3D","MKI67","perforin","NCR1"]
+    "desired_genes": ["PTPRC_trans5","CD83","CD3D","MKI67","perforin","NCR1"],
+    "expected_accuracy" : 0.019,
+    "genePanelOnemptyBarcode_ratio" : 5.25
 
 }

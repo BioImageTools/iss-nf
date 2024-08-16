@@ -18,9 +18,11 @@
         "default_threshold": 0.003
     },
     "invalid_codes": ["infeasible", "background", "nan", "NaN"],
-    "empty_barcodes": ["Fake1", "Fake2", "Fake3", "Fake4", "Fake5"],
+    "empty_barcodes": ["Fake1", "Fake2", "Fake3", "Fake4", "Fake5","Fake6", "Fake7", "Fake8", "Fake9", "Fake10"],
     "total_number_genes": 50,
     "MICROM_PER_PX": 0.1625,
-    "desired_genes": ["Adra1b", "Penk", "Rorb", "Cux2", "Sstr1"]
-}
+    "desired_genes": ["Adra1b", "Penk", "Rorb", "Cux2", "Sstr1"],
+    "expected_accuracy" : 0.01,
+    "genePanelOnemptyBarcode_ratio" : 5
+    }
 

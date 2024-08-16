@@ -3,6 +3,7 @@ import numpy as np
 from starfish import Experiment
 import fire
 
+random.seed(42)
 
 def tile_intensity_checker(picked_tiles):
     
