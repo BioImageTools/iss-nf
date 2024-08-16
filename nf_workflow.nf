@@ -173,20 +173,6 @@ workflow {
     spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
     starfish_tables = spots_detected_ch[1].toList() 
 
-    ///////////////////////////////////////////////
-
-    sorted_detected_spots_ch_init = spots_detected_ch[0].toSortedList() 
-    sorted_starfish_tables_init = spots_detected_ch[1].toSortedList()
-    postCode_input_init = CONCAT_NPY(sorted_detected_spots_ch_init)
-    starfish_table_init = CONCAT_CSV(sorted_starfish_tables_init)
-    postcode_results = POSTCODE_DECODER(
-        params.ExpMetaJSON,
-        Channel.fromPath(params.CodeJSON),
-        starfish_table_init,
-        postCode_input_init 
-    )
-    //////////////////////////////////////////////
-
     threshold_results = THRESHOLD_FINDER(
         Channel.fromPath(params.ExpMetaJSON),
         starfish_tables) 

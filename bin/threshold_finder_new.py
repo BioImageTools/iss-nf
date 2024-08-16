@@ -54,29 +54,23 @@ def plot_report(results, picked_threshold, genePanelOnemptyBarcode_ratio):
 def find_special_element1(pairs):
     pairs.sort(key=lambda x: x[1])
     second_elements = [pair[1] for pair in pairs]
-    unique_seconds = sorted(set(second_elements))
-    if len(unique_seconds) == 1:
-        first_elements = [pair[0] for pair in pairs]
-        return first_elements
-    else:
-        filtered_pairs = [pair for pair in pairs if pair[1] == unique_seconds[0]]
-        return min(pair[0] for pair in filtered_pairs)
+    filtered_pairs = [pair for pair in pairs if pair[1] == second_elements[0]]
+    return min(pair[0] for pair in filtered_pairs)
     
 def find_special_element2(elements):
-    sorted_elements = sorted(elements, key=lambda x: x[1])
-    lowest_ratio_elements = sorted_elements[:3]
-    best_element = max(lowest_ratio_elements, key=lambda x: x[2])
-    return best_element[0]
+    sorted_elements = sorted(elements, key=lambda x: x[2])
+    print(sorted_elements)
+    return sorted_elements[1][0]
     
-def select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnemptyBarcode_ratio, detected_spots):
+def select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnemptyBarcode_ratio, decoded_spots, detected_spots):
    
     picked_threshold1 = []
     picked_threshold2 = []
     
-    for ratio, threshold, detect in zip(ratios, thresholds, detected_spots):
+    for ratio, threshold, decode, detect in zip(ratios, thresholds, decoded_spots, detected_spots):
         if  ratio < expected_accuracy/genePanelOnemptyBarcode_ratio:
             picked_threshold1.append([threshold, ratio])
-        picked_threshold2.append([threshold, ratio, detect])
+        picked_threshold2.append([threshold, ratio, decode/detect])
     if picked_threshold1:
         lowest_threshold = find_special_element1(picked_threshold1)
     else:
@@ -144,7 +138,7 @@ def auto_threshold(experiment_metadata_json, *args):
         ratios = row['ratio']
         decoded_spots = row['#Decoded']
         detected_spots = row['#Detected']
-        scores.append(select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnemptyBarcode_ratio, detected_spots))
+        scores.append(select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnemptyBarcode_ratio, decoded_spots, detected_spots))
     picked_threshold = np.average(scores)
 
     plot_report(results, picked_threshold, genePanelOnemptyBarcode_ratio)
