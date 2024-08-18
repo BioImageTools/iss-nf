@@ -51,16 +51,41 @@ def plot_report(results, picked_threshold, genePanelOnemptyBarcode_ratio):
     with open(output_html_path, 'w') as f:
         f.write(html_content)
 
-def find_special_element1(pairs):
-    pairs.sort(key=lambda x: x[1])
-    second_elements = [pair[1] for pair in pairs]
-    filtered_pairs = [pair for pair in pairs if pair[1] == second_elements[0]]
-    return min(pair[0] for pair in filtered_pairs)
-    
+def find_special_element1(pairs, tolerance=1e-6):
+    pairs.sort(key=lambda x: x[1])   
+    for pair in pairs:
+        if pair[1] > tolerance:
+            return pair[0]   
+    return None
+
 def find_special_element2(elements):
-    sorted_elements = sorted(elements, key=lambda x: x[2])
-    print(sorted_elements)
-    return sorted_elements[1][0]
+    sorted_by_second = sorted(elements, key=lambda x: (x[1], -x[2]))
+    filtered_data = []
+    zero_encountered = False
+
+    for obj in sorted_by_second:
+        if obj[1] == 0.0:
+            if not zero_encountered:
+                filtered_data.append(obj)
+                zero_encountered = True
+        else:
+            filtered_data.append(obj)
+
+    top_5_lowest_second = filtered_data[:5]
+    sorted_top_5_by_third = sorted(top_5_lowest_second, key=lambda x: x[2], reverse=True)
+    threshold = max(obj[0] for obj in sorted_top_5_by_third)
+    return threshold
+
+# def find_special_element1(pairs):
+#     pairs.sort(key=lambda x: x[1])
+#     second_elements = [pair[1] for pair in pairs]
+#     filtered_pairs = [pair for pair in pairs if pair[1] == second_elements[0]]
+#     return min(pair[0] for pair in filtered_pairs)
+    
+# def find_special_element2(elements):
+#     sorted_elements = sorted(elements, key=lambda x: x[2], reverse=True)
+#     print(sorted_elements)
+#     return sorted_elements[1][0]
     
 def select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnemptyBarcode_ratio, decoded_spots, detected_spots):
    
@@ -72,7 +97,9 @@ def select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnempt
             picked_threshold1.append([threshold, ratio])
         picked_threshold2.append([threshold, ratio, decode/detect])
     if picked_threshold1:
-        lowest_threshold = find_special_element1(picked_threshold1)
+        lowest_threshold = find_special_element1(picked_threshold1, expected_accuracy/10)
+        if lowest_threshold is None:
+            lowest_threshold = find_special_element2(picked_threshold2)
     else:
         lowest_threshold = find_special_element2(picked_threshold2)
 
@@ -139,7 +166,7 @@ def auto_threshold(experiment_metadata_json, *args):
         decoded_spots = row['#Decoded']
         detected_spots = row['#Detected']
         scores.append(select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnemptyBarcode_ratio, decoded_spots, detected_spots))
-    picked_threshold = np.average(scores)
+    picked_threshold = np.max(scores)
 
     plot_report(results, picked_threshold, genePanelOnemptyBarcode_ratio)
 
