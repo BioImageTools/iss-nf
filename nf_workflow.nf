@@ -156,8 +156,8 @@ workflow {
                 }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.0008 //0.00392156
-    def max_thr = 0.01
+    def min_thr = 0.002 
+    def max_thr = 0.009
     def n_vals = 10
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }

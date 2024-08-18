@@ -75,7 +75,7 @@ def process_fov(
     images_dir_path,
     fov_name,
     threshold,
-    radius=3,
+    radius=9,
     filt= True,
     local_reg=not True
 ):
