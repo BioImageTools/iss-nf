@@ -214,9 +214,9 @@ workflow {
     // decoder_html = DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON)
     
     // Concatenate HTML files from all processes
-    // ch_all_html_files = decoder_html.merge(picked_threshold_html)
-    // MERGE_HTML(ch_all_html_files) 
+    ch_all_html_files = decoder_html.merge(picked_threshold_html)
+    MERGE_HTML(ch_all_html_files) 
     
-    // postcode_results = Channel.fromPath("/hpc/scratch/hdd4/nv066607/work_breastCancer/82/254211e9105156956caff71ee63a6d/postcode_starfish_output.csv")
+    // postcode_results = Channel.fromPath("/hpc/scratch/hdd4/nv066607/work-breast2/26/bd3e5dfebec2f5f8db03d165b35a66/postcode_starfish_output.csv")
     // DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON)
 }

@@ -22,7 +22,6 @@
     "total_number_genes": 50,
     "MICROM_PER_PX": 0.1625,
     "desired_genes": ["Adra1b", "Penk", "Rorb", "Cux2", "Sstr1"],
-    "expected_accuracy" : 0.01,
-    "genePanelOnemptyBarcode_ratio" : 5
+    "expected_accuracy" : 0.01
     }
 

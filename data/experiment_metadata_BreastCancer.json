@@ -20,8 +20,5 @@
     "invalid_codes": ["infeasible", "background", "nan", "NaN"],
     "empty_barcodes": ["Fake1", "Fake2", "Fake3", "Fake4", "Fake5","Fake6", "Fake7", "Fake8", "Fake9", "Fake10", "Fake11", "Fake12"],
     "total_number_genes": 63,
-    "MICROM_PER_PX": 0.325,
-    "expected_accuracy" : 0.01,
-    "genePanelOnemptyBarcode_ratio" : 5.25
-
+    "MICROM_PER_PX": 0.325
 }
