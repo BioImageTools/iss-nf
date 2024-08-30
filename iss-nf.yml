@@ -1,0 +1,31 @@
+name: iss-nf
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - python=3.7
+  - numpy<2.0
+  - matplotlib
+  - pandas
+  - slicedimage
+  - fire
+  - plotly
+  - seaborn
+  - xarray=0.16.2
+  - tifffile
+  - scikit-image=0.15.0
+  - pip
+  - pip:
+    - matplotlib-scalebar
+    - starfish
+    - itk-elastix
+    - setuptools
+    - pdbpp
+    - jupyter
+    - jupyterlab
+    - torch
+    - torchvision
+    - pyro-ppl
+    - jupyter_http_over_ws
+    - joblib
