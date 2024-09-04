@@ -1,10 +1,10 @@
 {
-    "round_count": 4,
+    "round_count": 9,
     "zplane_count": 1,
-    "channel_count": 6,
+    "channel_count": 2,
     "file_format": "r{}_c{}.tif",
     "primary_metadata": {
-        "channel_dict": {"FITC": 0, "Cy3": 1, "TR": 2, "Cy5": 3}
+        "channel_dict": {"Cy3": 0, "Cy5": 1}
     },
     "aux_tilesets": {
         "aux_names": ["anchor_nuclei", "anchor_dots", "nuclei"]
@@ -18,7 +18,7 @@
         "default_threshold": 0.01
     },
     "invalid_codes": ["infeasible", "background", "nan", "NaN"],
-    "empty_barcodes": ["Fake1", "Fake2", "Fake3", "Fake4", "Fake5","Fake6", "Fake7", "Fake8", "Fake9", "Fake10", "Fake11", "Fake12"],
-    "total_number_genes": 63,
+    "empty_barcodes": ["Fake1", "Fake2", "Fake3", "Fake4", "Fake5"],
+    "total_number_genes": 16,
     "MICROM_PER_PX": 0.325
 }

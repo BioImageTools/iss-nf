@@ -1,0 +1,19 @@
+{"version": "0.0.0", "mappings": [
+    {"codeword": [{"r":0 , "c":0 , "v": 1}], "target": "Fads2"},
+    {"codeword": [{"r":0 , "c":1 , "v": 1}], "target": "Gabrb1"},
+    {"codeword": [{"r":1 , "c":0 , "v": 1}], "target": "Ntsr2"},
+    {"codeword": [{"r":1 , "c":1 , "v": 1}], "target": "Sox9"},
+    {"codeword": [{"r":2 , "c":0 , "v": 1}], "target": "Ncan"},
+    {"codeword": [{"r":2 , "c":1 , "v": 1}], "target": "Slc25a18"},
+    {"codeword": [{"r":3 , "c":0 , "v": 1}], "target": "Plec"},
+    {"codeword": [{"r":3 , "c":1 , "v": 1}], "target": "Tmem47"},
+    {"codeword": [{"r":4 , "c":0 , "v": 1}], "target": "Htra1"},
+    {"codeword": [{"r":4 , "c":1 , "v": 1}], "target": "Mlc1"},
+    {"codeword": [{"r":5 , "c":0 , "v": 1}], "target": "Agt"},
+    {"codeword": [{"r":5 , "c":1 , "v": 1}], "target": "Cyp4f15"},
+    {"codeword": [{"r":6 , "c":0 , "v": 1}], "target": "Aqp4"},
+    {"codeword": [{"r":6 , "c":1 , "v": 1}], "target": "Ednrb"},
+    {"codeword": [{"r":7 , "c":1 , "v": 1}], "target": "Dync1h1"},
+    {"codeword": [{"r":8 , "c":1 , "v": 1}], "target": "Ncam2"}
+]
+}

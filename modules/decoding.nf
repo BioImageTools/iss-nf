@@ -18,6 +18,7 @@ process SPOT_FINDER {
 
     script:
     """
-    python ${pythonScript} decode_fov ./ ${fov_id} ${threshold}
+    python ${pythonScript} decode_fov ./ ${fov_id} ${threshold} ${params.SimpleLookupDecoder}
+
     """
    }
