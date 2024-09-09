@@ -62,22 +62,12 @@ def find_spots(
 
     return spots
 
-def decode(spots: SpotFindingResults, experiment, SimpleLookupDecoder) -> DecodedIntensityTable:
+def decode(spots: SpotFindingResults, experiment) -> DecodedIntensityTable:
     """Decode pixel traces using the codebook."""
-    if SimpleLookupDecoder:
-        from starfish.core.intensity_table.intensity_table_coordinates import \
-        transfer_physical_coords_to_intensity_table
-        decoder = DecodeSpots.SimpleLookupDecoder(
+    decoder = DecodeSpots.PerRoundMaxChannel(
         codebook=experiment.codebook,
-        )  
-        intensities = decoder.run(spots=spots)
-        decoded = transfer_physical_coords_to_intensity_table(intensity_table=intensities, spots=spots)
-
-    else:
-        decoder = DecodeSpots.PerRoundMaxChannel(
-            codebook=experiment.codebook,
-        )
-        decoded = decoder.run(spots=spots)
+    )
+    decoded = decoder.run(spots=spots)
 
     return decoded
 
@@ -85,10 +75,9 @@ def process_fov(
     images_dir_path,
     fov_name,
     threshold,
-    radius=9,
+    radius,
     filt= True,
-    local_reg=not True,
-    SimpleLookupDecoder=False
+    local_reg=not True
 ):
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
@@ -124,8 +113,7 @@ def process_fov(
 
     spots4postcode = build_spot_traces_exact_match(spots)
     np.save(f'{fov_name}.npy', spots4postcode)
-    # decoded = decode(spots, exp)
-    decoded = decode(spots, exp, SimpleLookupDecoder)
+    decoded = decode(spots, exp)
     decoded.to_features_dataframe().to_csv(f'{fov_name}-starfish_results-{threshold}.csv', index=False)
 
 

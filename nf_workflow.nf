@@ -35,7 +35,8 @@ def filter_channel(image_id) {
 }
 
 workflow {
-    
+    println new File('.').getCanonicalPath()
+
     println "PoSTcode activation: ${params.PoSTcode}"
 
     // Define tuple of round ID and file path for moving images:
@@ -92,7 +93,7 @@ workflow {
         Channel.fromPath(params.inputMovImagesLearnPath).toList())
         .combine(Channel.fromPath(params.inputRefImagePath).combine(anch_path))
 
-    // reg_html = REGISTER_QC(reg_qc_inputs)
+    reg_html = REGISTER_QC(reg_qc_inputs)
  
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
@@ -170,7 +171,7 @@ workflow {
                     it -> it[1]
                 }
     
-    spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
+    spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh, params.filt_radius)
     starfish_tables = spots_detected_ch[1].toList() 
 
     threshold_results = THRESHOLD_FINDER(
@@ -184,7 +185,7 @@ workflow {
     fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
 
     only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
-    spots_detected_ch = SPOT_FINDER_2(tuple_with_all, total_fovs_ch, only_thr_ch)
+    spots_detected_ch = SPOT_FINDER_2(tuple_with_all, total_fovs_ch, only_thr_ch, params.filt_radius)
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList() 
 
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
@@ -212,6 +213,6 @@ workflow {
     }
     
     // Concatenate HTML files from all processes
-    ch_all_html_files = decoder_html.merge(picked_threshold_html)
+    ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
     MERGE_HTML(ch_all_html_files) 
 }

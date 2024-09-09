@@ -1,4 +1,4 @@
-pythonScript = "${workflow.projectDir}/bin/threshold_finder_new2.py"
+pythonScript = "${workflow.projectDir}/bin/threshold_finder.py"
 
 process THRESHOLD_FINDER {
 

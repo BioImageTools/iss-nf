@@ -6,17 +6,17 @@ import base64
 import exp_metadata_json as exp_meta
 import fire
 
-def plot_report(results, picked_threshold):
+def plot_report(results, picked_threshold, genePanelOnemptyBarcode_ratio):
     plt.figure(figsize=(10, 8))
     
     for index, row in results.iterrows():
         fov = row['fov']
         thresholds = row['threshold']
-        fdrs = row['FDR']
+        ratios = [r * genePanelOnemptyBarcode_ratio for r in row['ratio']]
         decoded_spots = row['#Decoded']
-        plt.scatter(thresholds, fdrs, c=decoded_spots, cmap='viridis', s=np.array(decoded_spots)*0.01)
-        for threshold, fdr, spots in zip(thresholds, fdrs, decoded_spots):
-            plt.text(threshold, fdr, fov, fontsize=9, ha='right', va='bottom')
+        plt.scatter(thresholds, ratios, c=decoded_spots, cmap='viridis', s=np.array(decoded_spots)*0.01)
+        for threshold, ratio, spots in zip(thresholds, ratios, decoded_spots):
+            plt.text(threshold, ratio, fov, fontsize=9, ha='right', va='bottom')
     
     cbar = plt.colorbar(label='Number of Decoded')
     
@@ -51,74 +51,57 @@ def plot_report(results, picked_threshold):
     with open(output_html_path, 'w') as f:
         f.write(html_content)
 
-def score(fdr_percentage, decoded_spots_percentage, fdr_weight):
-    return (1 - fdr_weight) * decoded_spots_percentage - fdr_weight * fdr_percentage
+def find_special_element1(pairs):
+    pairs.sort(key=lambda x: x[0], reverse=True)
+    first_elements = [pair[0] for pair in pairs]
+    median_value = np.median(first_elements)
+    return median_value#pairs[0][0]
 
-def min_max_normalize(data):
-    min_val = min(data)
-    max_val = max(data)
-    return [(x - min_val) / (max_val - min_val) for x in data]
+def find_special_element2(elements):
+    sorted_by_second = sorted(elements, key=lambda x: (-x[2], x[1], -x[0]))
+    filtered_data = []
+    zero_encountered = False
 
-def percentile_based_normalization(data, lower_percentile=10, upper_percentile=90):
-    min_percentile_value = np.percentile(data, lower_percentile)
-    max_percentile_value = np.percentile(data, upper_percentile)
-    normalized_data = (data - min_percentile_value) / (max_percentile_value - min_percentile_value)   
-    normalized_data = np.clip(normalized_data, 0, 1)
-    return normalized_data
+    for obj in sorted_by_second:
+        if obj[1] == 0.0:
+            if not zero_encountered:
+                filtered_data.append(obj)
+                zero_encountered = True
+        else:
+            filtered_data.append(obj)
 
-def filter_none_values(thresholds, fdrs, decoded_spots):
-    filtered_thresholds = []
-    filtered_fdrs = []
-    filtered_decoded_spots = []
-
-    for threshold, fdr, spots in zip(thresholds, fdrs, decoded_spots):
-        if threshold is not None and fdr is not None and spots is not None:
-            filtered_thresholds.append(threshold)
-            filtered_fdrs.append(fdr)
-            filtered_decoded_spots.append(spots)
-
-    return filtered_thresholds, filtered_fdrs, filtered_decoded_spots
-
-def select_best_threshold(thresholds, fdrs, decoded_spots, fdr_weight=0.7):
-    thresholds, fdrs, decoded_spots = filter_none_values(thresholds, fdrs, decoded_spots)
+    top_5_lowest_second = filtered_data[:5]
+    sorted_top_5_by_third = sorted(top_5_lowest_second, key=lambda x: x[2], reverse=True)
+    threshold = max(obj[0] for obj in sorted_top_5_by_third)
+    return threshold
     
-    if not thresholds:  # Check if all were None
-        return 0.003
+def select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnemptyBarcode_ratio, decoded_spots, detected_spots):
+   
+    picked_threshold1 = []
+    picked_threshold2 = []
     
-    decoded_norm = percentile_based_normalization(decoded_spots)
-    fdrs_norm = percentile_based_normalization(fdrs)
-    scores = [score(fdr, spots, fdr_weight) for fdr, spots in zip(fdrs_norm, decoded_norm)]
-    best_threshold_index = np.argmax(scores)
-    best_threshold = thresholds[best_threshold_index]
-    return best_threshold
-
-def mode_first(data):
-    
-    frequency = {}
-    for item in data:
-        frequency[item] = frequency.get(item, 0) + 1
-    
-    max_frequency = max(frequency.values())
-    modes = [key for key, value in frequency.items() if value == max_frequency]
-    
-    return modes[0] if modes else None
-
-
-def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
-
-    empty_n = len(empty_barcodes)
-    if len(remove_genes) != 0: 
-        panel_n = (n_genesPanel - len(remove_genes) + empty_n)
+    for ratio, threshold, decode, detect in zip(ratios, thresholds, decoded_spots, detected_spots):
+        if  expected_accuracy is not None and ratio < expected_accuracy/genePanelOnemptyBarcode_ratio:
+            picked_threshold1.append([threshold, ratio])
+        picked_threshold2.append([threshold, ratio, decode/detect])
+    if picked_threshold1:
+        lowest_threshold = find_special_element1(picked_threshold1)
     else:
-        panel_n = (n_genesPanel + empty_n)
-    
-    return (empties / total) * (panel_n / empty_n)
+        lowest_threshold = find_special_element2(picked_threshold2)
+
+    return lowest_threshold
+
+def get_ratio(empties, total):
+    return (empties / total) 
 
 def auto_threshold(experiment_metadata_json, *args):
     
     ExpJsonParser = exp_meta.ExpJsonParser(experiment_metadata_json)
-    
     empty_barcodes = ExpJsonParser.meta['empty_barcodes']
+    try:
+        expected_accuracy = ExpJsonParser.meta['expected_accuracy']
+    except:
+        expected_accuracy = None
     try:
         remove_genes = ExpJsonParser.meta["remove_genes"]
     except:
@@ -127,8 +110,15 @@ def auto_threshold(experiment_metadata_json, *args):
     invalid_codes = ExpJsonParser.meta["invalid_codes"]        
     n_genesPanel = ExpJsonParser.meta["total_number_genes"]
     
+    empty_n = len(empty_barcodes)
+    if len(remove_genes) != 0: 
+        panel_n = (n_genesPanel - len(remove_genes) + empty_n)
+    else:
+        panel_n = (n_genesPanel + empty_n)
+        
+    genePanelOnemptyBarcode_ratio = (panel_n / empty_n)
 
-    df_general = pd.DataFrame(columns=['fov', 'threshold', '#Detected', '#Decoded', 'Percent', 'FDR'])
+    df_general = pd.DataFrame(columns=['fov', 'threshold', 'ratio', '#Decoded', '#Detected'])
 
     for path in args:
         components = path.split('/')
@@ -142,35 +132,36 @@ def auto_threshold(experiment_metadata_json, *args):
         filtered_df = filtered_df[~filtered_df['target'].isin(empty_barcodes)]
         filtered_df = filtered_df[~filtered_df['target'].isin(remove_genes)]
         filtered_df = filtered_df[~filtered_df['target'].isin(invalid_codes)]
-
-        total_filtered_count = len(filtered_df)
         empty_barcodes_count = df[df['target'].isin(empty_barcodes)].shape[0]
-        invalid_codes_count = df[df['target'].isin(invalid_codes)].shape[0]
+        total_filtered_count = len(filtered_df)
+
         try:
             df_general = df_general.append({
+                '#Detected': len(df),
                 'fov': fov_name,
                 'threshold': threshold,
-                '#Detected': len(df),
                 '#Decoded': total_filtered_count,
-                'Percent': total_filtered_count/len(df) * 100,
-                'FDR': get_fdr(empty_barcodes_count, len(df), n_genesPanel, empty_barcodes, remove_genes)}, ignore_index=True)
+                'ratio': get_ratio(empty_barcodes_count, len(df))}, ignore_index=True)
         except:
             pass
     df_general.to_csv('df_general.csv', index=False)
     results = df_general.groupby('fov').agg({
     'threshold': lambda x: x.tolist(),
-    'FDR': lambda x: x.tolist(),
-    '#Decoded': lambda x: x.tolist()
+    'ratio': lambda x: x.tolist(),
+    '#Decoded': lambda x: x.tolist(),
+    '#Detected': lambda x: x.tolist()
     }).reset_index()
     scores = []
     for index, row in results.iterrows():
         fov_name = row['fov']
         thresholds = row['threshold']
-        fdrs = row['FDR']
+        ratios = row['ratio']
         decoded_spots = row['#Decoded']
-        scores.append(select_best_threshold(thresholds, fdrs, decoded_spots))
-    picked_threshold = mode_first(scores)
-    plot_report(results, picked_threshold)
+        detected_spots = row['#Detected']
+        scores.append(select_best_threshold(thresholds, ratios, expected_accuracy, genePanelOnemptyBarcode_ratio, decoded_spots, detected_spots))
+    picked_threshold = np.max(scores)
+
+    plot_report(results, picked_threshold, genePanelOnemptyBarcode_ratio)
 
     with open('picked_threshold.txt', 'w') as file:
             file.write(str(picked_threshold))
