@@ -65,11 +65,41 @@ Ensure you have the following installed on your system:
 	python3 -m pip install -e .
 
 
-## TODO
+## How to Run the Code
 
- - [ ] Scripts for testing data (minimal from StarFISH and mouse-brain tissue: https://zenodo.org/records/7647746)
- - [ ] Docker/Singularity images
- - [ ] Find better way to define input parameters
- - [ ] PostCODE decoding
- - [ ] (Optional) Spot assignment to cells
+This section will guide you on how to run the workflow using the mouse brain dataset as an example. You can refer to the [mouse brain dataset](https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700) for more context.
+
+### Steps to Run the Workflow:
+
+1. **Prepare Your Dataset**
+
+   Before running the workflow, ensure that your data is prepared and follows our naming scheme for images. This ensures the workflow can locate and process your files correctly.
+
+2. **Modify the Configuration Files**
+
+   - **Update the Input Directory:**
+     In the `EMBL.config` file, locate the `INPUTDIR` variable and set it to the path of your dataset.
+     ```bash
+     INPUTDIR = "/path/to/your/dataset"
+     ```
+   
+   - **Prepare the Codebook:**
+     The workflow uses a `codebook.json` file that should be readable by the STARFISH library. Use our default format as a guide when preparing your own codebook.
+     
+     **Important Note:** For automated threshold finding, the algorithm expects 10-20% of your gene panel to consist of empty barcodes. These empty barcodes should be added at the bottom of your `codebook.json`.
+
+   - **Modify the Metadata:**
+     You’ll also need to update the `experiment_metadata.json` file. This file contains metadata about your dataset. Modify it to reflect the specifics of your data (e.g., number of rounds, channels, etc.).
+
+3. **Load Nextflow**
+
+   To run the workflow, you need the Nextflow module. If you are using the EMBL cluster, you can easily load it by running the following command:
+   ```bash
+   module load Nextflow
+
+4. **Run the Workflow**
+
+	Once you’ve updated your configuration files and loaded Nextflow, you can execute the workflow using the following command in your terminal:
+	```bash
+	nextflow run nf_workflow.nf -c EMBL.config
 
