@@ -73,7 +73,7 @@ This section will guide you on how to run the workflow using the mouse brain dat
 
 1. **Prepare Your Dataset**
 
-   Before running the workflow, ensure that your data is prepared and follows our [naming scheme for images](/g/cba/exchange/iss-nf-data/mouse-brain/stitched). This ensures the workflow can locate and process your files correctly.
+   Before running the workflow, ensure that your data is prepared and follows our naming scheme for images (/g/cba/exchange/iss-nf-data/mouse-brain/stitched). This ensures the workflow can locate and process your files correctly.
 
 2. **Modify the Configuration Files**
 
