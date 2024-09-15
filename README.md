@@ -67,13 +67,13 @@ Ensure you have the following installed on your system:
 
 ## How to Run the Code
 
-This section will guide you on how to run the workflow using the mouse brain dataset as an example. You can refer to the [mouse brain dataset](https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700) for more context.
+This section will guide you on how to run the workflow using the mouse brain dataset as an example. You can refer to the [mouse brain dataset](https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700) for more context. The stitched and registered images can be located within our EMBL cluster under this address: `/g/cba/exchange/iss-nf-data/mouse-brain/`.
 
 ### Steps to Run the Workflow:
 
 1. **Prepare Your Dataset**
 
-   Before running the workflow, ensure that your data is prepared and follows our naming scheme for images (/g/cba/exchange/iss-nf-data/mouse-brain/stitched). This ensures the workflow can locate and process your files correctly.
+   Before running the workflow, ensure that your data is prepared and follows our naming scheme for images. This ensures the workflow can locate and process your files correctly. The naming scheme is structured as: " r#Round_c#ChannelName.tiff "  where `r#` corresponds to the round number and `c#` to the channel name.
 
 2. **Modify the Configuration Files**
 
