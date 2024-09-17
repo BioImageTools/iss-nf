@@ -11,7 +11,7 @@ Follow these steps to set up and install the necessary environment and dependenc
 ## Prerequisites
 
 Ensure you have the following installed on your system:
-- [Miniforge](https://github.com/conda-forge/miniforge) (he minimal installers for Conda and Mamba specific to conda-forge)
+- [Miniforge](https://github.com/conda-forge/miniforge) (the minimal installers for Conda and Mamba specific to conda-forge)
 - [Git](https://git-scm.com/) (for cloning the repository)
 
 ## Installation steps
