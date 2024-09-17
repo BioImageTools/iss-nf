@@ -83,5 +83,4 @@ This section will guide you on how to run the workflow using the mouse brain dat
 
 	Once you’ve updated your configuration files and loaded Nextflow, you can execute the workflow using the following command in your terminal:
 	```bash
-	nextflow run nf_workflow.nf -c EMBL.config
-
+	nextflow run nf_workflow.nf
