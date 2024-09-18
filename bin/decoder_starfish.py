@@ -76,35 +76,15 @@ def process_fov(
     fov_name,
     threshold,
     radius,
-    filt= True,
-    local_reg=not True
 ):
     exp = Experiment.from_json('experiment.json')
     fov = exp[fov_name]
     primary = fov.get_image(FieldOfView.PRIMARY_IMAGES)
     reference = fov.get_image('anchor_dots')
-    
-    if filt and not local_reg:
-        primary, reference = filter(int(radius),
-                                    reference_stack=reference,
-                                    image_stack=primary)
-
-    if not filt and local_reg:
-        primary = register(image_stack=primary,
-                           reference_stack=reference
-                        )
-
-    if filt and local_reg:
-        
-        primary = register(
-                            image_stack=primary,
-                           reference_stack=reference
-                            )
-        primary,  reference= filter(
-                                    int(radius),
-                                    reference_stack=reference,
-                                    image_stack=primary
-                                    )
+     
+    primary, reference = filter(int(radius),
+                                reference_stack=reference,
+                                image_stack=primary)
         
     spots = find_spots(image_stack=primary,
                        reference_stack=reference, 
