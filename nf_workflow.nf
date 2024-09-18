@@ -171,7 +171,7 @@ workflow {
                     it -> it[1]
                 }
     
-    spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh, params.filt_radius)
+    spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
     starfish_tables = spots_detected_ch[1].toList() 
 
     threshold_results = THRESHOLD_FINDER(
@@ -185,7 +185,7 @@ workflow {
     fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
 
     only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
-    spots_detected_ch = SPOT_FINDER_2(tuple_with_all, total_fovs_ch, only_thr_ch, params.filt_radius)
+    spots_detected_ch = SPOT_FINDER_2(tuple_with_all, total_fovs_ch, only_thr_ch)
     sorted_detected_spots_ch = spots_detected_ch[0].toSortedList() 
 
     sorted_starfish_tables = spots_detected_ch[1].toSortedList()
