@@ -85,7 +85,7 @@ def process_fov(
     reference = fov.get_image('anchor_dots')
     
     if filt and not local_reg:
-        primary, reference = filter(radius,
+        primary, reference = filter(int(radius),
                                     reference_stack=reference,
                                     image_stack=primary)
 
@@ -101,7 +101,7 @@ def process_fov(
                            reference_stack=reference
                             )
         primary,  reference= filter(
-                                    radius,
+                                    int(radius),
                                     reference_stack=reference,
                                     image_stack=primary
                                     )
