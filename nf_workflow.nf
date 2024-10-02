@@ -216,3 +216,6 @@ workflow {
     ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
     MERGE_HTML(ch_all_html_files) 
 }
+workflow.onComplete {
+        println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-QC\" and \"RegisterQc\" as part of the pipeline.")
+    }

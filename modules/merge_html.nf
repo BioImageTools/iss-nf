@@ -1,6 +1,7 @@
 // Define the process to merge HTML files
 process MERGE_HTML {
     
+    publishDir "ISS-QC", mode: 'copy', overwrite: true
     label 'concat'
     // Input files - HTML files from the channel
     input:

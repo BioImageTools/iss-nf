@@ -2,6 +2,7 @@ pythonScript = "${workflow.projectDir}/bin/decoder_qc.py"
 
 process DECODER_QC {
     
+    publishDir "ISS-QC", mode: 'copy', overwrite: true
     debug true
     label 'long'
 
