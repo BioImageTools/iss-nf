@@ -1,9 +1,9 @@
-//pythonScript = "${workflow.projectDir}/bin/decoder_qc.py"
-pythonScript = "${workflow.projectDir}/bin/decoder_qc_interactive.py"
-
+pythonScript = "${workflow.projectDir}/bin/decoder_qc.py"
 
 process DECODER_QC {
-    //debug true
+    
+    publishDir "ISS-QC", mode: 'copy', overwrite: true
+    debug true
     label 'long'
 
     input:

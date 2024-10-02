@@ -1,6 +1,7 @@
 process JOIN_COORDINATES {
-    label 'infinitesimal'
-
+    
+    label 'concat'
+    
     input:
     tuple val(image_type), path(x)
 

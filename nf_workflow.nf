@@ -35,7 +35,8 @@ def filter_channel(image_id) {
 }
 
 workflow {
-    
+    println new File('.').getCanonicalPath()
+
     println "PoSTcode activation: ${params.PoSTcode}"
 
     // Define tuple of round ID and file path for moving images:
@@ -157,9 +158,9 @@ workflow {
                 }
     
     // Generate Thresholds but first Define parameters
-    def min_thr = 0.008
-    def max_thr = 0.01
-    def n_vals = 5
+    def min_thr = 0.002 
+    def max_thr = 0.009
+    def n_vals = 10
     def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
     def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
 
@@ -172,9 +173,13 @@ workflow {
                 }
     
     spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
-        
     starfish_tables = spots_detected_ch[1].toList() 
-    threshold_results = THRESHOLD_FINDER(starfish_tables)
+
+    threshold_results = THRESHOLD_FINDER(
+        Channel.fromPath(params.ExpMetaJSON),
+        starfish_tables) 
+    // picked_threshold = threshold_results.splitText()
+
     picked_threshold = threshold_results[0].splitText()
     picked_threshold_html = threshold_results[1]
 
@@ -191,23 +196,27 @@ workflow {
     
     if (params.PoSTcode){
         postcode_results = POSTCODE_DECODER(
+            params.ExpMetaJSON,
             Channel.fromPath(params.CodeJSON),
             starfish_table,
-            spot_intensities
+            postCode_input 
         ) 
         csv_name = postcode_results.collect {
             it -> it.baseName
         }      
         if (csv_name.contains("postcode_decoding_failed")==true){
-            decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table)
+            decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table, params.ExpMetaJSON)
         }else{
-             decoder_html = DECODER_QC_PoSTcode(postcode_results) 
+             decoder_html = DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON) 
         }      
     }else{
-        decoder_html = DECODER_QC_Starfish(starfish_table)
+        decoder_html = DECODER_QC_Starfish(starfish_table, params.ExpMetaJSON)
     }
     
     // Concatenate HTML files from all processes
     ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
     MERGE_HTML(ch_all_html_files) 
 }
+workflow.onComplete {
+        println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-QC\" and \"RegisterQc\" as part of the pipeline.")
+    }

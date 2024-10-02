@@ -26,4 +26,3 @@ if __name__ == "__main__":
         "join": join_coordinates
     }
     fire.Fire(cli)
-    

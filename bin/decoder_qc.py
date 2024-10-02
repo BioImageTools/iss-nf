@@ -3,30 +3,18 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
-from matplotlib.lines import Line2D
-import seaborn as sns
-import sys
+import plotly.graph_objects as go
 import base64
-
-empty_barcodes = [
-    'ABCA1', 'CDKN1A', 'CYP51A1', 'DHCR24',
-    'FDFT1', 'HMGCR', 'HMMR', 'INSIG1',
-    'LDLR', 'LIF', 'MYLIP', 'PIF1',
-    'PLK1', 'SCD5', 'ACTB', 'GAPDH'
-]
-
-remove_genes = ['IGHA1', 'IGHG1', 'IGHD', 'IGHM']
-
-invalid_codes = ['infeasible', 'background', 'nan']
-
-MICROM_PER_PX = 0.1625
+import seaborn as sns
+import exp_metadata_json as exp_meta
+import fire
 
 def print_in_a_box(text, margin=5):
     print('', '_' * (len(text) + (margin * 2)))
     print(f'|{" " * (len(text) + (margin * 2))}|')
     print(f'|{" " * margin}{text}{" " * margin}|')
     print(f'|_{"_" * (len(text) + (margin * 2) - 1)}|')
-
+    
 def scatter_plot(ax, data, gene_cm, x_col='X', y_col='Y', pixel_size=None,
                  despine=True, plot_title='', point_size=2, alpha=1,
                  others_color='lightgrey', background_color='white',
@@ -39,13 +27,11 @@ def scatter_plot(ax, data, gene_cm, x_col='X', y_col='Y', pixel_size=None,
             ax.yaxis.set_ticks([])
         return ax
 
-    # Plot all
     ax.scatter(data[x_col], data[y_col], s=point_size, alpha=alpha,
                color=others_color,
                # color='k',
                label='Others')
 
-    # Plot subset
     for gene in gene_cm:
         gene_data = data.loc[gene]
         ax.scatter(gene_data[x_col], gene_data[y_col], s=point_size, alpha=alpha,
@@ -69,11 +55,11 @@ def scatter_plot(ax, data, gene_cm, x_col='X', y_col='Y', pixel_size=None,
 
     return ax
 
-def filter_results(spots, decoding_method, column_map, empty_barcodes=None, remove_gene=None):
+def filter_results(spots, decoding_method, column_map, empty_barcodes=None, remove_genes=None):
     """
     Collect filtered results of chosen decoded method (either PoSTcode or Starfish).
     """
-    if remove_gene is not None: 
+    if len(remove_genes) !=0: 
         
         spots = spots[spots[column_map['passes_thresholds'][decoding_method]] & \
                                         ~spots[column_map['target'][decoding_method]].isin(remove_genes)]
@@ -85,233 +71,587 @@ def filter_results(spots, decoding_method, column_map, empty_barcodes=None, remo
 
     return spots, empty_barcode_spots
 
-def get_fdr(empties, total, n_genesPanel=246):
+def get_fdr(empties, total, n_genesPanel, empty_barcodes, remove_genes):
 
     empty_n = len(empty_barcodes)
-    if remove_genes is not None: 
+    if len(remove_genes) !=0: 
         panel_n = (n_genesPanel - len(remove_genes) + empty_n)
     else:
         panel_n = (n_genesPanel + empty_n)
     
     return (empties / total) * (panel_n / empty_n)
 
-def decoder_qc(table):
-          
-    df_general = pd.DataFrame(columns=['#Detected', '#Decoded', 'Percent', 'FDR%'])
 
+def decoder_qc(table, experiment_metadata_json, postcode):
+
+    ExpJsonParser = exp_meta.ExpJsonParser(experiment_metadata_json)
+    
+    empty_barcodes = ExpJsonParser.meta['empty_barcodes']
+    try:
+        remove_genes = ExpJsonParser.meta["remove_genes"]
+    except:
+        remove_genes = []
+    invalid_codes = ExpJsonParser.meta["invalid_codes"]
+    try:
+        desired_genes = ExpJsonParser.meta["desired_genes"]
+    except:
+        desired_genes = None
+    try:
+        housekeepers = ExpJsonParser.meta["housekeepers"]
+    except:
+        housekeepers = None
+        
+    n_gene_panel = ExpJsonParser.meta["total_number_genes"]
+    MICROM_PER_PX = ExpJsonParser.meta["MICROM_PER_PX"]
+
+
+    current_dir = os.getcwd()
+    
     df = pd.read_csv(table)
-    filtered_df = df[df['passes_thresholds_postcode']==True]
-    filtered_df = filtered_df[~filtered_df['target_postcode'].isin(empty_barcodes)]
-    filtered_df = filtered_df[~filtered_df['target_postcode'].isin(remove_genes)]
-    filtered_df = filtered_df[~filtered_df['target_postcode'].isin(invalid_codes)]
-
-    total_filtered_count = len(filtered_df)
-    empty_barcodes_count =  df[df['passes_thresholds_postcode'] & \
-                                        df['target_postcode'].isin(empty_barcodes)]
-    invalid_codes_count = df[df['target_postcode'].isin(invalid_codes)].shape[0]
-    total = df[df['passes_thresholds_postcode']]
-    
-    df_general = df_general.append({
-                '#Detected': len(df),
-                '#Decoded': total_filtered_count,
-                'Percent': total_filtered_count/len(df) * 100,
-                'FDR%': get_fdr(empty_barcodes_count.shape[0], total.shape[0]) *100}, ignore_index=True)
-    
-    df_general = df_general.fillna(0)  
-    metrics = ['# Detected', '# Decoded', 'Percent', 'FDR%']
-    values = df_general.iloc[0].tolist() 
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(metrics, values, marker='o', color='darkcyan') 
-    plt.title('Metrics Summary')
-    plt.xlabel('Metrics')
-    plt.ylabel('Values')
-    plt.grid(True)
-
-    for i, value in enumerate(values):
-        plt.text(i, value, str(round(value, 2)), ha='center', va='bottom', color='black')
-
-    plt.tight_layout()
-    plt.savefig('0-metrics_summary.png')
-    plt.close()
-    
-    detected_spots = df_general['#Detected']
-    decoded_spots = df_general['#Decoded']
-    false_discovery_rates = df_general['FDR%']
-
-    non_decoded_spots = df['target_postcode'][~df['decoded_spots']]
-
-    non_decoded_spots[
-        ~(non_decoded_spots[:, ].isin(['nan', 'infeasible', 'background'] + empty_barcodes) |
-         non_decoded_spots[:, ].isna())] = 'Low probability'
-
-    non_decoded_spots[non_decoded_spots.isin(empty_barcodes)] = 'Empty barcodes'
-
-    plt.figure(figsize=(8, 6))
-    colors = plt.cm.Paired(range(len(non_decoded_spots)))
-    ax = non_decoded_spots.value_counts(dropna=False).plot(
-        kind='bar', color=colors
-    )
-
-    plt.xlabel('Spot')
-    plt.ylabel('Count')
-    plt.title('Non-decoded PoSTcode spot counts', fontsize=16)
-    plt.grid(True, axis='y')
-    plt.tight_layout()
-    plt.savefig('1-non_decoded_spot_counts.png')
-    plt.close()
-       
-    ###################################################
     decoding_methods = ['starfish', 'postcode']
 
     column_map = {}
     column_map['target'] = {}
     column_map['passes_thresholds'] = {}
-
     for col_type in column_map:
         for method in decoding_methods:
             if method == 'starfish':
                 column_map[col_type][method] = col_type
             else:
                 column_map[col_type][method] = col_type + '_' + method
-    ####################################################
-   
-    COLORS = plt.rcParams['axes.prop_cycle'].by_key()['color']
-    decoding_method = 'postcode'
 
-    gene_colors = {
-        'COL1A2': COLORS[5],
-        'CD4': COLORS[4],
-        'KRT5': COLORS[0],
-        'EPCAM': COLORS[0],
-    }
+    custom_palette = sns.color_palette("coolwarm", as_cmap=True)
+
+    def convert_palette_to_plotly(palette):
+        rgb_values = palette(range(256))
+        return [f'rgb({int(r[0]*255)},{int(r[1]*255)},{int(r[2]*255)})' for r in rgb_values]
+    
+    def get_lob(blanks):
+        return np.mean(blanks) + (1.645 * np.std(blanks))        
+
+    df_general_s = pd.DataFrame(columns=['#Detected', '#Decoded', 'Percent', 'FDR%'])
+
+    filtered_df_s = df[df['passes_thresholds']==True]
+    filtered_df_s = filtered_df_s[~filtered_df_s['target'].isin(empty_barcodes)]
+    filtered_df_s = filtered_df_s[~filtered_df_s['target'].isin(remove_genes)]
+    filtered_df_s = filtered_df_s[~filtered_df_s['target'].isin(invalid_codes)]
+
+    total_filtered_count_s = len(filtered_df_s)
+    empty_barcodes_count_s =  df[df['passes_thresholds'] & \
+                                        df['target'].isin(empty_barcodes)]
+    invalid_codes_count_s = df[df['target'].isin(invalid_codes)].shape[0]
+    total_s = df[df['passes_thresholds']]
+
+    df_general_s = df_general_s.append({
+                '#Detected': len(df),
+                '#Decoded': total_filtered_count_s,
+                'Percent': total_filtered_count_s/len(df) * 100,
+                'FDR%': get_fdr(empty_barcodes_count_s.shape[0], total_s.shape[0], n_gene_panel, empty_barcodes, remove_genes) *100}, ignore_index=True)
+
+    COLORS = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    decoding_method = 'starfish'
+    
+    filtered_spots = df[df['passes_thresholds']].set_index('target')
+    gene_counts = filtered_spots.groupby(filtered_spots.index).count()['xc'].sort_values(ascending=False)
+    
+    ###################################################
+    decoding_method = 'starfish'
+    if desired_genes is None:
+        gene_count_subset_top = gene_counts.iloc[:5]
+        gene_colors = {gene_count_subset_top.index.tolist()[i]: COLORS[i] for i in range(len(gene_count_subset_top))}
+    else:
+        gene_count_subset_top = desired_genes
+        gene_colors = {gene_count_subset_top[i]: COLORS[i] for i in range(len(gene_count_subset_top))}
 
     spots_for_scatter = filter_results(
         df, decoding_method, column_map, empty_barcodes, remove_genes)[0].set_index(column_map['target'][decoding_method])
 
-    legend_location = 'upper left'
-    scalebar_location = 'lower left'
+    legend_location = 'upper right'
+    scalebar_location = 'lower right'
 
     fig, ax = plt.subplots(figsize=(12, 8))
-
     scatter_plot(
         ax, spots_for_scatter, gene_cm=gene_colors, x_col='xc', y_col='yc',
         pixel_size=MICROM_PER_PX, despine=True,
-        point_size=0.5, #alpha=0.1, 
+        point_size=0.5, alpha=0.4, 
         others_color='k',  
         legend_loc=legend_location,
         scalebar_loc=scalebar_location,
     )
-
-    plt.title("Spatial Distribution of Gene Expression") 
+    plt.title("Gene Expression decoded by Starfish") 
     plt.xlabel("X Coordinate") 
     plt.ylabel("Y Coordinate")  
     plt.gca().invert_yaxis() 
-
     plt.grid(True, linestyle='--', alpha=0.5)
-
-    legend_elements = [Line2D([0], [0], marker='o', color='w', markersize=10, markerfacecolor=color, label=gene) for gene, color in gene_colors.items()]
-    ax.legend(handles=legend_elements, loc=legend_location, title="Genes", title_fontsize='large')
-
     plt.gca().set_aspect('equal')  # Set aspect ratio to 'equal'
     plt.tight_layout() 
-    plt.savefig('2-spatial_distribution_gene_expression.png')
+    plt.savefig('GeneExpression-DecodedByStarfish.png')
     plt.close()
-    ###################################################### 
 
-    filtered_spots = df[df['decoded_spots']].set_index('target_postcode')
-    gene_counts = filtered_spots.groupby(filtered_spots.index).count()['xc'].sort_values(ascending=False)
-
-    hks = ['RPLP0', 'GUSB']
-
+    #####################################################
+    if housekeepers is None:
+        hks = gene_counts.iloc[:2].index.tolist()
+    else:
+        hks = housekeepers
     gene_counts_subset = gene_counts[gene_counts.index.isin(hks)]
+    num_colors_needed = len(hks)
 
-    plt.figure(figsize=(10, 6))
-    bars = gene_counts_subset.plot(kind='bar', color=['darkcyan', 'darkgreen'])  # Change colors to dark mode colors
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=gene_counts_subset.index,
+        y=gene_counts_subset.values,
+        marker_color=[COLORS[i] for i in range(num_colors_needed)],
+        text=[f'Total: {count}' for count in gene_counts_subset.values],
+        hoverinfo='text'
+    ))
+    fig.update_layout(
+        title='Gene Spot Counts in Starfish',
+        xaxis=dict(title='Genes'),
+        yaxis=dict(title='Spot Counts'),
+        xaxis_tickangle=-45,
+    )
+    #####################################################
+    gene_count_subset_top = gene_counts.iloc[:26]
+    fig_top = go.Figure(go.Bar(
+        x=gene_count_subset_top.index,
+        y=gene_count_subset_top.values.flatten(),
+        marker_color=convert_palette_to_plotly(custom_palette),
+    ))
+    fig_top.update_layout(
+        title='Top 25 Genes by % Total Spots in Starfish',
+        xaxis=dict(title='Genes'),
+        yaxis=dict(title='% Total Spots'),
+    )
+    #####################################################
+    gene_count_subset_bottom = gene_counts.iloc[-25:]
+    fig_bottom = go.Figure(go.Bar(
+        x=gene_count_subset_bottom.index,
+        y=gene_count_subset_bottom.values.flatten(),
+        marker_color=convert_palette_to_plotly(custom_palette),
+    ))
+    fig_bottom.update_layout(
+        title='Bottom 25 Genes by % Total Spots in Starfish',
+        xaxis=dict(title='Genes'),
+        yaxis=dict(title='% Total Spots'),
+    )
+    #####################################################
+    df2 = df[df['passes_thresholds']==True].set_index('target')
+    df2 = df2.groupby(df2.index).count().sort_values('xc', ascending=False)
+    df2['i'] = range(df2.shape[0])
+    if housekeepers is None:
+        housekeepers = [gene_counts.index[1],gene_counts.index[-1]]
+    empty_barcode_counts = df2[df2.index.isin(empty_barcodes)]
+    lob = get_lob(empty_barcode_counts.iloc[:, 0])
+    if str(lob) not in 'nan':
+        housekeeper_counts = df2[df2.index.isin(housekeepers)]
+        regular_target_counts = df2[~df2.index.isin(housekeepers)]
+        regular_target_counts = regular_target_counts[~regular_target_counts.index.isin(empty_barcodes)]
 
-    for gene, count in gene_counts_subset.items():
-        plt.text(hks.index(gene), count + 10, f'Total: {count}', ha='center', va='bottom', color='white')  # Adjust text color for visibility
+        fig, ax = plt.subplots(figsize=(12, 6))
 
-    plt.title('Gene Spot Counts')
-    plt.xlabel('Genes')
-    plt.ylabel('Spot Counts')
-    plt.xticks(rotation=0)
-    plt.tight_layout()
-    plt.savefig('3-gene_spot_counts.png')
-    plt.close()
-    ########################################################
+        ax.scatter(
+            regular_target_counts['i'], regular_target_counts['xc'],
+            s=12,
+            facecolor='k',
+            label='Targets',
+        )
+        ax.scatter(
+            empty_barcode_counts['i'], empty_barcode_counts['xc'],
+            s=36,
+            facecolor='r',
+            label='Empty barcodes',
+        )
+        ax.scatter(
+            housekeeper_counts['i'], housekeeper_counts['xc'],
+            s=36,
+            facecolor='lightgreen',
+            label='Housekeepers',
+        )
+
+        plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
+
+        ax.set_yscale('log')
+        ax.set_title('Starfish results', fontsize=14)
+        ax.set_ylabel('Spot counts', fontsize=14)
+        ax.set_xlabel('Target panel', fontsize=14)
+        ax.legend()
+        plt.tight_layout() 
+        plt.savefig('Starfish_Result.png')
+        plt.close()
+    #####################################################
+    df3 = empty_barcode_counts.iloc[:, 0:1].rename(columns={empty_barcode_counts.columns[0]: 'Spot count'})
+
+    fig = go.Figure(go.Bar(
+        y=df3.index,
+        x=df3['Spot count'],
+        orientation='h', 
+        marker_color='#FF7F50' 
+    ))
+    fig.update_layout(
+        title='Spot counts for Empty Barcodes in Starfish',
+        xaxis=dict(title='Spot count'),
+        yaxis=dict(title='Empty barcodes'),
+    )
+    #####################################################
+
+    fig_gene_counts = go.Figure()
+    fig_gene_counts.add_trace(go.Bar(
+        x=gene_counts_subset.index,
+        y=gene_counts_subset.values,
+        marker_color=[COLORS[i] for i in range(num_colors_needed)],
+        text=[f'Total: {count}' for count in gene_counts_subset.values],
+        hoverinfo='text'
+    ))
+
+    fig_gene_counts.update_layout(
+        title='Gene Spot Counts in Starfish',
+        xaxis=dict(title='Genes'),
+        yaxis=dict(title='Spot Counts'),
+        xaxis_tickangle=-45,
+        height=400,  
+        width=600   
+    )
+    fig_top_genes = go.Figure(go.Bar(
+        x=gene_count_subset_top.index,
+        y=gene_count_subset_top.values.flatten(),
+        marker_color=convert_palette_to_plotly(custom_palette),
+    ))
+    fig_top_genes.update_layout(
+        title='Top 25 Genes by % Total Spots in Starfish',
+        xaxis=dict(title='Genes'),
+        yaxis=dict(title='% Total Spots'),
+        height=400, 
+        width=600   
+    )
+    fig_bottom_genes = go.Figure(go.Bar(
+        x=gene_count_subset_bottom.index,
+        y=gene_count_subset_bottom.values.flatten(),
+        marker_color=convert_palette_to_plotly(custom_palette),
+    ))
+    fig_bottom_genes.update_layout(
+        title='Bottom 25 Genes by % Total Spots in Starfish',
+        xaxis=dict(title='Genes'),
+        yaxis=dict(title='% Total Spots'),
+        height=400,  
+        width=600    
+    )
+    if str(lob) not in 'nan':
+        fig_empty_barcodes = go.Figure(go.Bar(
+            y=df3.index,
+            x=df3['Spot count'],
+            orientation='h',
+            marker_color='#FF7F50'
+        ))
+        fig_empty_barcodes.update_layout(
+            title='Spot counts for Empty Barcodes in Starfish',
+            xaxis=dict(title='Spot count'),
+            yaxis=dict(title='Empty barcodes'),
+            height=400, 
+            width=600    
+        )
+       
+    html_content = '<html><head><title>Interactive Decoding Plots</title></head><body>'
+    html_content += '<h1>Gene Spot Counts in Starfish</h1>'
+    html_content += fig_gene_counts.to_html(full_html=False, include_plotlyjs='cdn')
+    html_content += '<h1>Top 25 Genes by % Total Spots in Starfish</h1>'
+    html_content += fig_top_genes.to_html(full_html=False, include_plotlyjs='cdn')
+    html_content += '<h1>Bottom 25 Genes by % Total Spots in Starfish</h1>'
+    html_content += fig_bottom_genes.to_html(full_html=False, include_plotlyjs='cdn')
+    if str(lob) not in 'nan':
+        html_content += '<h1>Spot counts for Empty Barcodes in Starfish</h1>'
+        html_content += fig_empty_barcodes.to_html(full_html=False, include_plotlyjs='cdn')
+    html_content += '</body></html>'
     
-    gene_count_subset = gene_counts.iloc[:26]
-    plt.figure(figsize=(12, 6))
-    sns.barplot(x=gene_count_subset.index, y=gene_count_subset.values, palette="viridis")
-    plt.title('Top 25 Genes by % Total Spots', fontsize=16)
-    plt.ylabel('% Total Spots', fontsize=12)
-    plt.xlabel('Genes', fontsize=12)
-    plt.xticks(rotation=45, ha='right', fontsize=10)
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
-    for index, value in enumerate(gene_count_subset.values):
-        plt.text(index, value + 0.5, f'{value:,.2f}%', ha='center', fontsize=8)
-    plt.tight_layout()
-    plt.savefig('4-top_25_genes_total_spots.png')
-    plt.close()
+    if postcode: 
+        try:
+            df_general = pd.DataFrame(columns=['#Detected', '#Decoded', 'Percent', 'FDR%'])
+            filtered_df = df[df['passes_thresholds_postcode']==True]
+            filtered_df = filtered_df[~filtered_df['target_postcode'].isin(empty_barcodes)]
+            filtered_df = filtered_df[~filtered_df['target_postcode'].isin(remove_genes)]
+            filtered_df = filtered_df[~filtered_df['target_postcode'].isin(invalid_codes)]
 
-    gene_count_subset = gene_counts.iloc[-25:]
-    plt.figure(figsize=(12, 6))
-    sns.barplot(x=gene_count_subset.index, y=gene_count_subset.values, palette="magma_r")
-    plt.title('Bottom 25 Genes by % Total Spots', fontsize=16)
-    plt.ylabel('% Total Spots', fontsize=12)
-    plt.xlabel('Genes', fontsize=12)
-    plt.xticks(rotation=45, ha='right', fontsize=10)
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
-    for index, value in enumerate(gene_count_subset.values):
-        plt.text(index, value * 1.025, f'{value:,.2f}%', ha='center', fontsize=8)
-    plt.tight_layout()
-    plt.savefig('5-bottom_25_genes_total_spots.png')
-    plt.close()
+            total_filtered_count = len(filtered_df)
+            empty_barcodes_count =  df[df['passes_thresholds_postcode'] & \
+                                                df['target_postcode'].isin(empty_barcodes)]
+            invalid_codes_count = df[df['target_postcode'].isin(invalid_codes)].shape[0]
+            total = df[df['passes_thresholds_postcode']]
 
-    ########################################################
-    
-    dff = df[df['passes_thresholds_postcode'] == True].set_index('target_postcode')
-    dff = dff.groupby(dff.index).count().sort_values('xc', ascending=False)
+            df_general = df_general.append({
+                        '#Detected': len(df),
+                        '#Decoded': total_filtered_count,
+                        'Percent': total_filtered_count/len(df) * 100,
+                        'FDR%': get_fdr(empty_barcodes_count.shape[0], total.shape[0], n_gene_panel, empty_barcodes, remove_genes) *100}, ignore_index=True)
 
-    empty_barcode_counts = dff[dff.index.isin(empty_barcodes)]
-    df = empty_barcode_counts.iloc[:, 0:1].rename(columns={empty_barcode_counts.columns[0]: 'Spot count'})
+            filtered_spots = df[df['decoded_spots']].set_index('target_postcode')
+            gene_counts = filtered_spots.groupby(filtered_spots.index).count()['xc'].sort_values(ascending=False)
 
-    plt.figure(figsize=(10, 8))
-    bars = plt.barh(df.index, df['Spot count'], color='#FF7F50')  # Set color to orange
-    plt.xlabel('Spot count')
-    plt.ylabel('Empty barcodes')
-    plt.title('Spot counts for Empty Barcodes')
-    plt.gca().invert_yaxis()
+            ###################################################
+            decoding_method = 'postcode'
+            if desired_genes is None:
+                gene_count_subset_top = gene_counts.iloc[:5]
+                gene_colors = {gene_count_subset_top.index.tolist()[i]: COLORS[i] for i in range(len(gene_count_subset_top))}
+            else:
+                gene_count_subset_top = desired_genes
+                gene_colors = {gene_count_subset_top[i]: COLORS[i] for i in range(len(gene_count_subset_top))}
 
-    plt.tight_layout()
-    plt.savefig('6-spot_counts_empty_barcodes.png')
-    plt.close()
-    
-    ###########################################################
+            spots_for_scatter = filter_results(
+                df, decoding_method, column_map, empty_barcodes, remove_genes)[0].set_index(column_map['target'][decoding_method])
 
-    plot_folder = os.getcwd()
+            legend_location = 'upper right'
+            scalebar_location = 'lower right'
 
-    plot_files = sorted(os.listdir(plot_folder))
+            fig, ax = plt.subplots(figsize=(12, 8))
+            scatter_plot(
+                ax, spots_for_scatter, gene_cm=gene_colors, x_col='xc', y_col='yc',
+                pixel_size=MICROM_PER_PX, despine=True,
+                point_size=0.5, alpha=0.4, 
+                others_color='k',  
+                legend_loc=legend_location,
+                scalebar_loc=scalebar_location,
+            )
+            plt.title("Gene Expression decoded by PoSTcode") 
+            plt.xlabel("X Coordinate") 
+            plt.ylabel("Y Coordinate")  
+            plt.gca().invert_yaxis() 
 
-    # Get the current directory
-    current_dir = os.getcwd()
+            plt.grid(True, linestyle='--', alpha=0.5)
+            plt.gca().set_aspect('equal')  # Set aspect ratio to 'equal'
+            plt.tight_layout() 
+            plt.savefig('GeneExpression-DecodedByPoSTcode.png')
+            plt.close()
 
-    # Save all plots in an HTML file
-    html_content = '<html><head><style>.plot-container { display: block; }</style></head><body>'
+            ###################################################### 
+            non_decoded_spots = df['target_postcode'][~df['decoded_spots']]
+
+            non_decoded_spots[
+                ~(non_decoded_spots.str.contains('nan|infeasible|background|' + '|'.join(empty_barcodes)) |
+                non_decoded_spots.isna())] = 'Low probability'
+
+            non_decoded_spots[non_decoded_spots.isin(empty_barcodes)] = 'Empty barcodes'
+
+            fig = go.Figure(go.Bar(
+                x=non_decoded_spots.value_counts(dropna=False).index,
+                y=non_decoded_spots.value_counts(dropna=False).values,
+                marker=dict(color=non_decoded_spots.value_counts(dropna=False).values, colorscale='Viridis'),
+            ))
+
+            fig.update_layout(
+                title='Non-decoded PoSTcode spot counts',
+                xaxis=dict(title='Spot'),
+                yaxis=dict(title='Count'),
+            )
+            #####################################################
+            if housekeepers is None:
+                hks = gene_counts.iloc[:2].index.tolist()
+            else:
+                hks = housekeepers
+            gene_counts_subset = gene_counts[gene_counts.index.isin(hks)]
+            num_colors_needed = len(hks)
+
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=gene_counts_subset.index,
+                y=gene_counts_subset.values,
+                marker_color=[COLORS[i] for i in range(num_colors_needed)],
+                text=[f'Total: {count}' for count in gene_counts_subset.values],
+                hoverinfo='text'
+            ))
+            fig.update_layout(
+                title='Gene Spot Counts',
+                xaxis=dict(title='Genes'),
+                yaxis=dict(title='Spot Counts'),
+                xaxis_tickangle=-45,
+            )
+            #####################################################
+            gene_count_subset_top = gene_counts.iloc[:26]
+            fig_top = go.Figure(go.Bar(
+                x=gene_count_subset_top.index,
+                y=gene_count_subset_top.values.flatten(),
+                marker_color=convert_palette_to_plotly(custom_palette),
+            ))
+            fig_top.update_layout(
+                title='Top 25 Genes by % Total Spots',
+                xaxis=dict(title='Genes'),
+                yaxis=dict(title='% Total Spots'),
+            )
+            #####################################################
+            gene_count_subset_bottom = gene_counts.iloc[-25:]
+            fig_bottom = go.Figure(go.Bar(
+                x=gene_count_subset_bottom.index,
+                y=gene_count_subset_bottom.values.flatten(),
+                marker_color=convert_palette_to_plotly(custom_palette),
+            ))
+            fig_bottom.update_layout(
+                title='Bottom 25 Genes by % Total Spots',
+                xaxis=dict(title='Genes'),
+                yaxis=dict(title='% Total Spots'),
+            )
+            #####################################################
+            df2 = df[df['passes_thresholds_postcode']==True].set_index('target_postcode')
+            df2 = df2.groupby(df2.index).count().sort_values('xc', ascending=False)
+            df2['i'] = range(df2.shape[0])
+
+            empty_barcode_counts = df2[df2.index.isin(empty_barcodes)]
+            lob = get_lob(empty_barcode_counts.iloc[:, 0])
+            if str(lob) not in 'nan':
+                housekeeper_counts = df2[df2.index.isin(housekeepers)]
+                regular_target_counts = df2[~df2.index.isin(housekeepers)]
+                regular_target_counts = regular_target_counts[~regular_target_counts.index.isin(empty_barcodes)]
+
+                fig, ax = plt.subplots(figsize=(12, 6))
+
+                ax.scatter(
+                    regular_target_counts['i'], regular_target_counts['xc'],
+                    s=12,
+                    facecolor='k',
+                    label='Targets',
+                )
+                ax.scatter(
+                    empty_barcode_counts['i'], empty_barcode_counts['xc'],
+                    s=36,
+                    facecolor='r',
+                    label='Empty barcodes',
+                )
+                ax.scatter(
+                    housekeeper_counts['i'], housekeeper_counts['xc'],
+                    s=36,
+                    facecolor='lightgreen',
+                    label='Housekeepers',
+                )
+                plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
+                ax.set_yscale('log')
+                ax.set_title('PoSTcode results', fontsize=14)
+                ax.set_ylabel('Spot counts', fontsize=14)
+                ax.set_xlabel('Target panel', fontsize=14)
+                ax.legend()
+                plt.tight_layout() 
+                plt.savefig('Postcode_Result.png')
+                plt.close()
+            #####################################################
+            df3 = empty_barcode_counts.iloc[:, 0:1].rename(columns={empty_barcode_counts.columns[0]: 'Spot count'})
+
+            fig = go.Figure(go.Bar(
+                y=df3.index,
+                x=df3['Spot count'],
+                orientation='h', 
+                marker_color='#FF7F50' 
+            ))
+            fig.update_layout(
+                title='Spot counts for Empty Barcodes in PoSTcode',
+                xaxis=dict(title='Spot count'),
+                yaxis=dict(title='Empty barcodes'),
+            )
+            #####################################################
+            fig_non_decoded = go.Figure(go.Bar(
+                x=non_decoded_spots.value_counts(dropna=False).index,
+                y=non_decoded_spots.value_counts(dropna=False).values,
+                marker=dict(color=non_decoded_spots.value_counts(dropna=False).values, colorscale='Viridis'),
+            ))
+            fig_non_decoded.update_layout(
+                title='Non-decoded spot counts in PoSTcode',
+                xaxis=dict(title='Spot'),
+                yaxis=dict(title='Count'),
+                height=400, 
+                width=600   
+            )
+            fig_gene_counts = go.Figure()
+
+            fig_gene_counts.add_trace(go.Bar(
+                x=gene_counts_subset.index,
+                y=gene_counts_subset.values,
+                marker_color=[COLORS[i] for i in range(num_colors_needed)],
+                text=[f'Total: {count}' for count in gene_counts_subset.values],
+                hoverinfo='text'
+            ))
+            fig_gene_counts.update_layout(
+                title='Gene Spot Counts',
+                xaxis=dict(title='Genes'),
+                yaxis=dict(title='Spot Counts in PoSTcode'),
+                xaxis_tickangle=-45,
+                height=400,  
+                width=600   
+            )
+            fig_top_genes = go.Figure(go.Bar(
+                x=gene_count_subset_top.index,
+                y=gene_count_subset_top.values.flatten(),
+                marker_color=convert_palette_to_plotly(custom_palette),
+            ))
+            fig_top_genes.update_layout(
+                title='Top 25 Genes by % Total Spots in PoSTcode',
+                xaxis=dict(title='Genes'),
+                yaxis=dict(title='% Total Spots'),
+                height=400, 
+                width=600   
+            )
+            fig_bottom_genes = go.Figure(go.Bar(
+                x=gene_count_subset_bottom.index,
+                y=gene_count_subset_bottom.values.flatten(),
+                marker_color=convert_palette_to_plotly(custom_palette),
+            ))
+            fig_bottom_genes.update_layout(
+                title='Bottom 25 Genes by % Total Spots in PoSTcode',
+                xaxis=dict(title='Genes'),
+                yaxis=dict(title='% Total Spots'),
+                height=400,  
+                width=600    
+            )
+            if str(lob) not in 'nan':
+                fig_empty_barcodes = go.Figure(go.Bar(
+                    y=df3.index,
+                    x=df3['Spot count'],
+                    orientation='h',
+                    marker_color='#FF7F50'
+                ))
+                fig_empty_barcodes.update_layout(
+                    title='Spot counts for Empty Barcodes in PoSTcode',
+                    xaxis=dict(title='Spot count'),
+                    yaxis=dict(title='Empty barcodes'),
+                    height=400, 
+                    width=600    
+                )
+
+            html_content += '<h1>Non-decoded PoSTcode spot counts</h1>'
+            html_content += fig_non_decoded.to_html(full_html=False, include_plotlyjs='cdn')
+            html_content += '<h1>Gene Spot Counts in PoSTcode</h1>'
+            html_content += fig_gene_counts.to_html(full_html=False, include_plotlyjs='cdn')
+            html_content += '<h1>Top 25 Genes by % Total Spots in PoSTcode</h1>'
+            html_content += fig_top_genes.to_html(full_html=False, include_plotlyjs='cdn')
+            html_content += '<h1>Bottom 25 Genes by % Total Spots in PoSTcode</h1>'
+            html_content += fig_bottom_genes.to_html(full_html=False, include_plotlyjs='cdn')
+            if str(lob) not in 'nan':
+                html_content += '<h1>Spot counts for Empty Barcodes in PoSTcode</h1>'
+                html_content += fig_empty_barcodes.to_html(full_html=False, include_plotlyjs='cdn')
+            html_content += '</body></html>'
+        except:
+            error_message = "PoSTcode failed: Negative eigenvalues affect the covariance matrix utilized in multivariate normal distribution, requiring it to be positive definite when employed by the PoSTcode."
+            html_content += '<h1>Decoding by PoSTcode failed </h1>'
+            html_content += error_message
+
+    # Generate HTML file
+    plot_files = sorted(os.listdir(current_dir))
+    table_html_s = df_general_s.to_html(index=False)
+    if postcode:
+            table_html = df_general.to_html(index=False)
+            html_content += '<h1>Here is the summary of the PoSTcode decoding</h1>'
+            html_content += table_html
+    html_content += '<h1>Here is the summary of the starfish decoding</h1>'
+    html_content += table_html_s
     for plot_file in plot_files:
         if plot_file.endswith('.png'):
-            with open(os.path.join(plot_folder, plot_file), 'rb') as img_file:
+            plot_name = os.path.splitext(plot_file)[0]
+            html_content += f'<h1>{plot_name}</h1>'
+            with open(os.path.join(current_dir, plot_file), 'rb') as img_file:
                 img_base64 = base64.b64encode(img_file.read()).decode('utf-8')
                 html_content += f'<div class="plot-container"><img src="data:image/png;base64,{img_base64}"></div>'
     html_content += '</body></html>'
 
-    # Write the HTML content to a file named "plots.html" in the current directory
-    html_file_path = os.path.join(current_dir, '3-decoding_plots.html')
+    html_file_path = os.path.join(current_dir, 'decoding_plots.html')
     with open(html_file_path, 'w') as f:
         f.write(html_content)
-
+        
 if __name__ == "__main__":
 
-    csv_path = (sys.argv[1])
-    decoder_qc(csv_path)
+    cli = {
+        "create_qc": decoder_qc
+    }
+    fire.Fire(cli)

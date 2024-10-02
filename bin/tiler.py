@@ -1,17 +1,13 @@
 import os
 import fire
-import csv
-import json
+
 from collections import namedtuple
-from typing import Union
 import exp_metadata_json as exp_meta
 
 import numpy as np
 import tifffile as tiff
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-from skimage.transform import resize, rescale
+
 
 # For future changes:
 def get_ch_map(

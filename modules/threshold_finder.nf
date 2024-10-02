@@ -2,6 +2,8 @@ pythonScript = "${workflow.projectDir}/bin/threshold_finder.py"
 
 process THRESHOLD_FINDER {
 
+    label 'small'
+    
     input:
     path(exp_metadata_json)
     path(starfish_tables)

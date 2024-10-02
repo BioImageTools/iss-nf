@@ -3,12 +3,23 @@ import fire
 from starfish import Codebook
 import postcode.decoding_functions as post_decfunc
 import pandas as pd
+import exp_metadata_json as exp_meta
+
 
 def postcode_decoder(
+    experiment_metadata_json,
     codebook_json,
     starfish_decoded_table,
     spots_postcode_input
 ):
+    ExpJsonParser = exp_meta.ExpJsonParser(experiment_metadata_json)
+    empty_barcodes = ExpJsonParser.meta['empty_barcodes']
+    try:
+        remove_genes = ExpJsonParser.meta["remove_genes"]
+    except:
+        remove_genes = []
+    invalid_codes = ExpJsonParser.meta["invalid_codes"]
+
     starfish_decoded_table = pd.read_csv(starfish_decoded_table)
     spots_postcode_input = np.load(spots_postcode_input)
     spots_postcode_input = spots_postcode_input['arr_0']
@@ -28,15 +39,6 @@ def postcode_decoder(
             out, df_class_names, df_class_names)
         ##############################
         prob_threshold = 0.7
-        empty_barcodes = ["Fake1", "Fake2", "Fake3", "Fake4", "Fake5"]
-        '''
-        empty_barcodes = [
-            'ABCA1', 'CDKN1A', 'CYP51A1', 'DHCR24',
-            'FDFT1', 'HMGCR', 'HMMR','INSIG1',
-            'LDLR', 'LIF', 'MYLIP', 'PIF1',
-            'PLK1', 'SCD5', 'ACTB', 'GAPDH'
-        ]
-        '''
 
         spot_table = pd.DataFrame()
 
@@ -44,9 +46,11 @@ def postcode_decoder(
         spot_table['postcode_probability'] = postcode_decoded_df.Probability.values
         spot_table['passes_thresholds_postcode'] = True
 
-        non_decoded = ['infeasible', 'background', 'nan']
         spot_table.loc[
-            spot_table['target_postcode'].isin(non_decoded),
+            spot_table['target_postcode'].isin(invalid_codes),
+            'passes_thresholds_postcode'] = False
+        spot_table.loc[
+            spot_table['target_postcode'].isin(remove_genes),
             'passes_thresholds_postcode'] = False
         spot_table.loc[
             spot_table['target_postcode'].isna(),

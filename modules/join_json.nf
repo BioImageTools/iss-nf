@@ -1,7 +1,9 @@
 pythonScript = "${workflow.projectDir}/bin/join_json.py"
 
 process JOIN_JSON {
-
+    
+    label 'concat'
+    
     input:
     path(all_spacetx_json)
 
