@@ -1,4 +1,0 @@
-tifffile==2021.11.2
-itk-elastix
-fire
-scikit-image==0.18.2
