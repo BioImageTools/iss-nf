@@ -45,6 +45,7 @@ target
 **.tif
 **.csv
 **/Final_Results
+**/RegisterQc/
 test_workflow.nf
 
 # Apptainer
