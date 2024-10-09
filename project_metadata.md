@@ -85,7 +85,7 @@
 	- [ ] R
 	- [ ] Fiji/ImageJ macro
 	- [ ] Matlab
-	- [ ] Netflow workflow
+	- [ ] Nextflow workflow
 	- [ ] Galaxy workflow
 	- [ ] Other:
   * Third-party software and libraries
