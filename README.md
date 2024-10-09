@@ -14,15 +14,13 @@ Ensure you have the following installed on your system:
 - [Miniforge](https://github.com/conda-forge/miniforge) (the minimal installers for Conda and Mamba specific to conda-forge)
 - [Git](https://git-scm.com/) (for cloning the repository)
 
-## Installation steps
+## Clone the Repository
 
-**Clone the Repository**
-
-	Clone the project repository from GitHub to your machine.
+Clone the project repository from GitHub to your machine.
 	
-	```bash
+```bash
 	git clone --branch main-docker --single-branch git@git.embl.de:grp-cba/iss-nf.git
-
+```
 
 ## How to run the code
 
