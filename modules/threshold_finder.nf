@@ -3,6 +3,7 @@ pythonScript = "${workflow.projectDir}/bin/threshold_finder.py"
 process THRESHOLD_FINDER {
 
     label 'small'
+    container "nimavakili/base_env:latest"
     
     input:
     path(exp_metadata_json)

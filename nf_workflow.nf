@@ -93,7 +93,7 @@ workflow {
         Channel.fromPath(params.inputMovImagesLearnPath).toList())
         .combine(Channel.fromPath(params.inputRefImagePath).combine(anch_path))
 
-    // reg_html = REGISTER_QC(reg_qc_inputs)
+    reg_html = REGISTER_QC(reg_qc_inputs)
  
     // Estimate tile size based on the registered anchor image:
     tile_metadata_ch = TILE_SIZE_ESTIMATOR(Channel.fromPath(params.inputRefImagePath))
@@ -213,8 +213,8 @@ workflow {
     }
     
     // Concatenate HTML files from all processes
-    // ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
-    // MERGE_HTML(ch_all_html_files) 
+    ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
+    MERGE_HTML(ch_all_html_files) 
 }
 workflow.onComplete {
         println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-QC\" and \"RegisterQc\" as part of the pipeline.")
