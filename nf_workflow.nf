@@ -132,47 +132,47 @@ workflow {
     //grouped_tiled_images_flat.view()
     grouped_input = grouped_tiled_images_flat.combine(coords4spacetx, by: 0)
     
-    // spacetx_out = SPACETX(grouped_input)
-    // // Collect all the output from SpaceTx for feeding the following parts:
-    // all_spacetx_files = spacetx_out
-    //     .map {it ->
-    //         it[1]}
-    //     .flatten()
+    spacetx_out = SPACETX(grouped_input)
+    // Collect all the output from SpaceTx for feeding the following parts:
+    all_spacetx_files = spacetx_out
+        .map {it ->
+            it[1]}
+        .flatten()
     
-    // // Join all spacetx files with codebook and experiment JSONs:
-    // exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
+    // Join all spacetx files with codebook and experiment JSONs:
+    exp_json_ch = MAKE_EXP_JSON(params.ExpMetaJSON)
 
-    // exp_plus_codebook = Channel.fromPath(params.CodeJSON)
-    //     .mix(exp_json_ch)
+    exp_plus_codebook = Channel.fromPath(params.CodeJSON)
+        .mix(exp_json_ch)
 
-    // tuple_with_all = all_spacetx_files
-    //     .mix(exp_plus_codebook)
-    //     .toList()
+    tuple_with_all = all_spacetx_files
+        .mix(exp_plus_codebook)
+        .toList()
     
-    // tile_picker = TILE_PICKER(tuple_with_all, Channel.of('5'))
-    // tiles = tile_picker
-    //         .splitText()
-    //         .map{it ->
-    //             it[0..6]
-    //             }
+    tile_picker = TILE_PICKER(tuple_with_all, Channel.of('5'))
+    tiles = tile_picker
+            .splitText()
+            .map{it ->
+                it[0..6]
+                }
     
-    // // Generate Thresholds but first Define parameters
-    // def min_thr = 0.002 
-    // def max_thr = 0.009
-    // def n_vals = 10
-    // def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
-    // def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
+    // Generate Thresholds but first Define parameters
+    def min_thr = 0.002 
+    def max_thr = 0.009
+    def n_vals = 10
+    def increment = (Math.log10(max_thr) - Math.log10(min_thr)) / (n_vals - 1)
+    def thresholds = (0..<n_vals).collect { Math.pow(10, Math.log10(min_thr) + it * increment) }
         
-    // merge_tiles_thresh = tiles.combine(thresholds)
-    // merge_tiles_thresh_tile = merge_tiles_thresh.map{
-    //                 it -> it[0]
-    //             }
-    // merge_tiles_thresh_thresh = merge_tiles_thresh.map{
-    //                 it -> it[1]
-    //             }
+    merge_tiles_thresh = tiles.combine(thresholds)
+    merge_tiles_thresh_tile = merge_tiles_thresh.map{
+                    it -> it[0]
+                }
+    merge_tiles_thresh_thresh = merge_tiles_thresh.map{
+                    it -> it[1]
+                }
     
-    // spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
-    // starfish_tables = spots_detected_ch[1].toList() 
+    spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
+    starfish_tables = spots_detected_ch[1].toList() 
 
     // threshold_results = THRESHOLD_FINDER(
     //     Channel.fromPath(params.ExpMetaJSON),

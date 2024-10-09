@@ -1,10 +1,9 @@
-pythonScript = "${workflow.projectDir}/bin/spacetx.py"
-
 process SPACETX {
 
     //debug true
     label 'beast'
-    
+    container "nimavakili/starfish:latest"
+
     input:
     tuple val(imageType), path('*'), path(coords)
     //file coordinates from params.imageDir
@@ -14,6 +13,6 @@ process SPACETX {
 
     script:
     """
-    python ${pythonScript} run_formatting ./ $coords ./
+    python /scripts/spacetx.py run_formatting ./ $coords ./
     """
    }

@@ -1,9 +1,8 @@
-pythonScript = "${workflow.projectDir}/bin/decoder_starfish.py"
-
 process SPOT_FINDER {
     
     //debug true
     label 'decoding_starfish'
+    container "nimavakili/starfish:latest"
 
     input:
     path('*')
@@ -18,6 +17,6 @@ process SPOT_FINDER {
 
     script:
     """
-    python ${pythonScript} decode_fov ./ ${fov_id} ${threshold} 
+    python /scripts/decoder_starfish.py decode_fov ./ ${fov_id} ${threshold} 
     """
    }
