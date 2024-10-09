@@ -1,9 +1,8 @@
-pythonScript = "${workflow.projectDir}/bin/tiler.py"
-
 process TILING {
     //publishDir "Tiled", mode: 'copy', overwrite: true
     //debug true
     label 'tiler'
+    container "nimavakili/tiling:latest"
 
     input:
     tuple val(sampleID), path(transformedImage), val(tile_size), path(experiment_metadata_json)
@@ -14,6 +13,6 @@ process TILING {
 
     script:
     """
-    python ${pythonScript} run_tiling $transformedImage $tile_size $experiment_metadata_json
+    python /scripts/tiler.py run_tiling $transformedImage $tile_size $experiment_metadata_json
     """
 }
