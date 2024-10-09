@@ -174,48 +174,48 @@ workflow {
     spots_detected_ch = SPOT_FINDER_1(tuple_with_all, merge_tiles_thresh_tile, merge_tiles_thresh_thresh)
     starfish_tables = spots_detected_ch[1].toList() 
 
-    // threshold_results = THRESHOLD_FINDER(
-    //     Channel.fromPath(params.ExpMetaJSON),
-    //     starfish_tables) 
-    // // picked_threshold = threshold_results.splitText()
+    threshold_results = THRESHOLD_FINDER(
+        Channel.fromPath(params.ExpMetaJSON),
+        starfish_tables) 
+    // picked_threshold = threshold_results.splitText()
 
-    // picked_threshold = threshold_results[0].splitText()
-    // picked_threshold_html = threshold_results[1]
+    picked_threshold = threshold_results[0].splitText()
+    picked_threshold_html = threshold_results[1]
 
-    // fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
+    fov_and_threshold_ch = total_fovs_ch.combine(picked_threshold)
 
-    // only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
-    // spots_detected_ch = SPOT_FINDER_2(tuple_with_all, total_fovs_ch, only_thr_ch)
-    // sorted_detected_spots_ch = spots_detected_ch[0].toSortedList() 
+    only_thr_ch = fov_and_threshold_ch.map{ it -> it[1] }
+    spots_detected_ch = SPOT_FINDER_2(tuple_with_all, total_fovs_ch, only_thr_ch)
+    sorted_detected_spots_ch = spots_detected_ch[0].toSortedList() 
 
-    // sorted_starfish_tables = spots_detected_ch[1].toSortedList()
-    // postCode_input = CONCAT_NPY(sorted_detected_spots_ch)
-    // // postCode.view()
-    // starfish_table = CONCAT_CSV(sorted_starfish_tables)
+    sorted_starfish_tables = spots_detected_ch[1].toSortedList()
+    postCode_input = CONCAT_NPY(sorted_detected_spots_ch)
+    // postCode.view()
+    starfish_table = CONCAT_CSV(sorted_starfish_tables)
     
-    // if (params.PoSTcode){
-    //     postcode_results = POSTCODE_DECODER(
-    //         params.ExpMetaJSON,
-    //         Channel.fromPath(params.CodeJSON),
-    //         starfish_table,
-    //         postCode_input 
-    //     ) 
-    //     csv_name = postcode_results.collect {
-    //         it -> it.baseName
-    //     }      
-    //     if (csv_name.contains("postcode_decoding_failed")==true){
-    //         decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table, params.ExpMetaJSON)
-    //     }else{
-    //          decoder_html = DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON) 
-    //     }      
-    // }else{
-    //     decoder_html = DECODER_QC_Starfish(starfish_table, params.ExpMetaJSON)
-    // }
+    if (params.PoSTcode){
+        postcode_results = POSTCODE_DECODER(
+            params.ExpMetaJSON,
+            Channel.fromPath(params.CodeJSON),
+            starfish_table,
+            postCode_input 
+        ) 
+        csv_name = postcode_results.collect {
+            it -> it.baseName
+        }      
+        if (csv_name.contains("postcode_decoding_failed")==true){
+            decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table, params.ExpMetaJSON)
+        }else{
+             decoder_html = DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON) 
+        }      
+    }else{
+        decoder_html = DECODER_QC_Starfish(starfish_table, params.ExpMetaJSON)
+    }
     
-    // // Concatenate HTML files from all processes
+    // Concatenate HTML files from all processes
     // ch_all_html_files = reg_html.merge(tile_html).merge(decoder_html).merge(picked_threshold_html)
     // MERGE_HTML(ch_all_html_files) 
 }
-// workflow.onComplete {
-//         println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-QC\" and \"RegisterQc\" as part of the pipeline.")
-//     }
+workflow.onComplete {
+        println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-QC\" and \"RegisterQc\" as part of the pipeline.")
+    }
