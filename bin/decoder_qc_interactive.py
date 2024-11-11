@@ -274,9 +274,12 @@ def decoder_qc(table, experiment_metadata_json, postcode):#, ):
         facecolor='lightgreen',
         label='Housekeepers',
     )
+    if np.isnan(lob):
+        print("Warning: LoB calculation returned NaN. Setting LoB to 0.")
+        lob = 0  # or another default value
 
+    # Proceed with plotting
     plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
-
     ax.set_yscale('log')
     ax.set_title('Starfish results', fontsize=14)
     ax.set_ylabel('Spot counts', fontsize=14)
@@ -523,6 +526,11 @@ def decoder_qc(table, experiment_metadata_json, postcode):#, ):
                 facecolor='lightgreen',
                 label='Housekeepers',
             )
+            if np.isnan(lob):
+                print("Warning: LoB calculation returned NaN. Setting LoB to 0.")
+                lob = 0  # or another default value
+
+            # Proceed with plotting
             plt.axhline(y=lob, color='r', linestyle='--', linewidth=0.5, label=f'LoB: {round(lob)} spots')
             ax.set_yscale('log')
             ax.set_title('PoSTcode results', fontsize=14)
