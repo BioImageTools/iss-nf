@@ -11,7 +11,6 @@ Follow these steps to set up and install the necessary environment and dependenc
 ## Prerequisites
 
 Ensure you have the following installed on your system:
-- [Miniforge](https://github.com/conda-forge/miniforge) (the minimal installers for Conda and Mamba specific to conda-forge)
 - [Git](https://git-scm.com/) (for cloning the repository)
 
 ## Clone the Repository
@@ -19,7 +18,7 @@ Ensure you have the following installed on your system:
 Clone the project repository from GitHub to your machine.
 	
 ```bash
-git clone --branch main-docker --single-branch git@git.embl.de:grp-cba/iss-nf.git
+git clone git@git.embl.de:grp-cba/iss-nf.git
 ```
 
 ## How to run the code
@@ -30,7 +29,7 @@ This section will guide you on how to run the workflow using the mouse brain dat
 
 1. **Prepare Your Dataset**
 
-   Before running the workflow, ensure that your data is prepared and follows our naming scheme for images. This ensures the workflow can locate and process your files correctly. The naming scheme is structured as: " r#Round_c#ChannelName.tiff "  where `r#` corresponds to the round number and `c#` to the channel name.
+   Before running the workflow, ensure that your data is prepared and follows our naming scheme for images. This ensures the workflow can locate and process your files correctly. The naming scheme is structured as: " r#Round_ChannelName.tiff "  where `r#` corresponds to the round number followd by channel name. 
 
 2. **Modify the configuration files**
 
