@@ -1,6 +1,6 @@
 process POSTCODE_DECODER {
     
-    publishDir "ISS-QC", mode: 'copy', overwrite: true
+    publishDir "ISS-reports", mode: 'copy', overwrite: true
     label 'decoding_postcode'
     container "nimavakili/postcode:latest"
 
