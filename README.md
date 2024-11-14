@@ -2,7 +2,7 @@
 
 Nextflow workflow for the automated creation of a transcript map from ISS image data.
 
-![Nextflow workflow diagram](image.png)
+![Nextflow workflow diagram](workflow_diagram.png)
 
 # Installation instructions for Your Repository
 
