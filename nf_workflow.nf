@@ -226,5 +226,5 @@ workflow {
     MERGE_HTML(ch_all_html_files) 
 }
 workflow.onComplete {
-        println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-QC\" and \"RegisterQc\" as part of the pipeline.")
+        println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-reports\" and \"RegisterQc\" as part of the pipeline.")
     }

@@ -4,7 +4,7 @@ process TO_SPATIALDATA {
 
     publishDir "ISS-reports", mode: 'copy', overwrite: true
     label 'concat'
-    container "nimavakili/spatialdata-env:latest"
+    container "nimavakili/spatialdata-env:0.2.5"
 
     input:
     path(spotsPath_imgPaths)

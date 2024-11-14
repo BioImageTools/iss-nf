@@ -1,3 +1,6 @@
+from numba import config
+config.DISABLE_JIT = True
+
 import spatialdata as sd
 from spatialdata.transformations.transformations import Identity
 from spatialdata.transformations import set_transformation
