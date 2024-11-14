@@ -4,6 +4,7 @@ process REGISTER_QC {
     publishDir "RegisterQc", mode: 'copy', overwrite: true
     //debug true
     label 'apply_registration'
+    container "nimavakili/base_env:latest"
     
     input:
     path(regImg_path)

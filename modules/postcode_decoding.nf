@@ -1,9 +1,8 @@
-pythonScript = "${workflow.projectDir}/bin/postcode_decoder.py"
-
 process POSTCODE_DECODER {
     
-    publishDir "ISS-QC", mode: 'copy', overwrite: true
+    publishDir "ISS-reports", mode: 'copy', overwrite: true
     label 'decoding_postcode'
+    container "nimavakili/postcode:latest"
 
     input:
     path(exp_metadata_json_file)
@@ -18,6 +17,6 @@ process POSTCODE_DECODER {
 
     script:
     """
-    python ${pythonScript} run $exp_metadata_json_file $codebook_json $starfish_table $postcode_input
+    python /scripts/postcode_decoder.py run $exp_metadata_json_file $codebook_json $starfish_table $postcode_input
     """
    }

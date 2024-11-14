@@ -1,6 +1,7 @@
 process JOIN_COORDINATES {
     
     label 'concat'
+    container "nimavakili/base_env:latest"
     
     input:
     tuple val(image_type), path(x)

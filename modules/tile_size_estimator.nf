@@ -1,8 +1,7 @@
-pythonScript = "${workflow.projectDir}/bin/tile_size_estimator.py"
-
 process TILE_SIZE_ESTIMATOR {
 
     label 'small'
+    container "nimavakili/tiling:latest"
 
     input:
     path(refImage)
@@ -14,6 +13,6 @@ process TILE_SIZE_ESTIMATOR {
 
     script:
     """
-    python ${pythonScript} run ${refImage}
+    python /scripts/tile_size_estimator.py run ${refImage}
     """
 }

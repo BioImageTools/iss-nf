@@ -1,10 +1,10 @@
 //pythonScript = "${workflow.projectDir}/bin/decoder_qc.py"
 pythonScript = "${workflow.projectDir}/bin/decoder_qc_interactive.py"
 
-
 process DECODER_QC {
     //debug true
     //label 'long'
+    container "nimavakili/base_env:latest"
 
     input:
     path(decoded_csv)

@@ -20,6 +20,8 @@ include { DECODER_QC as DECODER_QC_PoSTcodeFailed } from './modules/decoder_qc.n
 include { MERGE_HTML } from './modules/merge_html.nf'
 include { CONCAT_CSV } from './modules/concat_csv.nf'
 include { CONCAT_NPY } from './modules/concat_npy.nf'
+include { TO_SPATIALDATA } from './modules/to_spatialdata.nf'
+
 
 
 def filter_channel(image_id) {
@@ -204,12 +206,19 @@ workflow {
             it -> it.baseName
         }      
         if (csv_name.contains("postcode_decoding_failed")==true){
+            spatialdata_qc_inputs = regImg_path.combine(anch_path).combine(starfish_table)
+            TO_SPATIALDATA(spatialdata_qc_inputs)
             decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table, params.ExpMetaJSON)
         }else{
+            spatialdata_qc_inputs = regImg_path.combine(anch_path).combine(postcode_results)
+            TO_SPATIALDATA(spatialdata_qc_inputs)
              decoder_html = DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON) 
         }      
     }else{
+        spatialdata_qc_inputs = regImg_path.combine(anch_path).combine(starfish_table)
+        TO_SPATIALDATA(spatialdata_qc_inputs)
         decoder_html = DECODER_QC_Starfish(starfish_table, params.ExpMetaJSON)
+
     }
     
     // Concatenate HTML files from all processes
@@ -217,5 +226,5 @@ workflow {
     MERGE_HTML(ch_all_html_files) 
 }
 workflow.onComplete {
-        println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-QC\" and \"RegisterQc\" as part of the pipeline.")
+        println("Quality control reports and tables were generated in the workflow project directory under the folders \"ISS-reports\" and \"RegisterQc\" as part of the pipeline.")
     }

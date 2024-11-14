@@ -2,7 +2,7 @@
 
 Nextflow workflow for the automated creation of a transcript map from ISS image data.
 
-![Nextflow workflow diagram](image.png)
+![Nextflow workflow diagram](workflow_diagram.PNG)
 
 # Installation instructions for Your Repository
 
@@ -14,38 +14,13 @@ Ensure you have the following installed on your system:
 - [Miniforge](https://github.com/conda-forge/miniforge) (the minimal installers for Conda and Mamba specific to conda-forge)
 - [Git](https://git-scm.com/) (for cloning the repository)
 
-## Installation steps
+## Clone the Repository
 
-1. **Create a Conda Environment**
-
-   First, create a new Conda environment using the provided `iss-nf.yml` file. This file contains all the dependencies required for your project.
-
-   ```bash
-   conda env create -f iss-nf.yml
-
-2. **Clone the Repository**
-
-	Next, clone the project repository from GitHub to your local machine.
+Clone the project repository from GitHub to your machine.
 	
-	```bash
-	git clone https://github.com/milana-gataric/postcode.git
-
-3. **Activate the Conda Environment**
-
-	Activate the Conda environment you created in step 1.
-	```bash
-	conda activate iss-nf
-
-4. **Navigate to the Project Directory**
-	Change your current directory to the cloned repository.
-	```bash
-	cd postcode
-
-5. **Install the Project in Editable Mode**
-	Finally, install the project in editable mode. This allows you to make changes to the source code and have those changes immediately available without reinstalling the package.
-	```bash
-	python3 -m pip install -e .
-
+```bash
+git clone --branch main-docker --single-branch git@git.embl.de:grp-cba/iss-nf.git
+```
 
 ## How to run the code
 
@@ -83,4 +58,4 @@ This section will guide you on how to run the workflow using the mouse brain dat
 
 	Once you’ve updated your configuration files and loaded Nextflow, you can execute the workflow using the following command in your terminal:
 	```bash
-	nextflow run nf_workflow.nf
+	nextflow run nf_workflow.nf -profile apptainer 

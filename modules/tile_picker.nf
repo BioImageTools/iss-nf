@@ -1,7 +1,6 @@
-pythonScript = "${workflow.projectDir}/bin/tile_picker.py"
-
 process TILE_PICKER {
     label 'small'
+    container "nimavakili/tiling:latest"
 
     input:
     path("*")
@@ -12,6 +11,6 @@ process TILE_PICKER {
         
     script:
     """
-    python ${pythonScript} tile_picker ./ $n_tilePicker
+    python /scripts/tile_picker.py tile_picker ./ $n_tilePicker
     """
    }

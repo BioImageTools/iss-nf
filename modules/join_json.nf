@@ -3,6 +3,7 @@ pythonScript = "${workflow.projectDir}/bin/join_json.py"
 process JOIN_JSON {
     
     label 'concat'
+    container "nimavakili/base_env:latest"
     
     input:
     path(all_spacetx_json)
