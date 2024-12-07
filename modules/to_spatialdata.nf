@@ -7,6 +7,7 @@ process TO_SPATIALDATA {
     container "nimavakili/spatialdata-env:0.2.5"
 
     input:
+    path(exp_metadata_json)
     path(spotsPath_imgPaths)
 
     output:
@@ -14,6 +15,6 @@ process TO_SPATIALDATA {
 
     script:
     """
-    python ${pythonScript} to_spatialdata $spotsPath_imgPaths
+    python ${pythonScript} to_spatialdata $exp_metadata_json $spotsPath_imgPaths
     """
    }

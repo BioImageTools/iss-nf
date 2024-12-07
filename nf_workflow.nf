@@ -206,17 +206,17 @@ workflow {
             it -> it.baseName
         }      
         if (csv_name.contains("postcode_decoding_failed")==true){
-            spatialdata_qc_inputs = regImg_path.combine(anch_path).combine(starfish_table)
-            TO_SPATIALDATA(spatialdata_qc_inputs)
+            // spatialdata_qc_inputs = regImg_path.combine(anch_path).combine(starfish_table)
+            // TO_SPATIALDATA(params.ExpMetaJSON, spatialdata_qc_inputs)
             decoder_html = DECODER_QC_PoSTcodeFailed(starfish_table, params.ExpMetaJSON)
         }else{
             spatialdata_qc_inputs = regImg_path.combine(anch_path).combine(postcode_results)
-            TO_SPATIALDATA(spatialdata_qc_inputs)
+            TO_SPATIALDATA(params.ExpMetaJSON, spatialdata_qc_inputs)
              decoder_html = DECODER_QC_PoSTcode(postcode_results, params.ExpMetaJSON) 
         }      
     }else{
-        spatialdata_qc_inputs = regImg_path.combine(anch_path).combine(starfish_table)
-        TO_SPATIALDATA(spatialdata_qc_inputs)
+        // spatialdata_qc_inputs = regImg_path.combine(anch_path).combine(starfish_table)
+        // TO_SPATIALDATA(params.ExpMetaJSON, spatialdata_qc_inputs)
         decoder_html = DECODER_QC_Starfish(starfish_table, params.ExpMetaJSON)
 
     }
