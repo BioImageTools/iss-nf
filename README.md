@@ -18,7 +18,7 @@ Ensure you have the following installed on your system:
 Clone the project repository from GitHub to your machine.
 	
 ```bash
-git clone git@git.embl.de:grp-cba/iss-nf.git
+git clone https://github.com/embl-cba/iss-nf.git
 ```
 
 ## How to run the code
