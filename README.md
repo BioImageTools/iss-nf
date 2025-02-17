@@ -23,13 +23,15 @@ git clone git@git.embl.de:grp-cba/iss-nf.git
 
 ## How to run the code
 
-This section will guide you on how to run the workflow using the mouse brain dataset as an example. You can refer to the [mouse brain dataset](https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700) for more context. The stitched and registered images can be located within our EMBL cluster under this address: `/g/cba/exchange/iss-nf-data/mouse-brain/`.
-
-### Steps to run the workflow:
-
 1. **Prepare Your Dataset**
 
-   Before running the workflow, ensure that your data is prepared and follows our naming scheme for images. This ensures the workflow can locate and process your files correctly. The naming scheme is structured as: " r#Round_ChannelName.tiff "  where `r#` corresponds to the round number followd by channel name. 
+   To run the workflow you need the following data:
+   - Image data with naming scheme: `r<Round>_<Channel>.tiff`, where "Round" is a one-based integer and "Channel" is free text without spaces.
+    - For example: `r1_DAPI.tiff`
+   - Codebook: `codebook.json`, as defined by StarFISH (FIXME: Add link to specification)
+   - Experimental metadata `experimental_metadata.json`
+
+   Examples for a codebook and metadata can be [found here](examples/mouse_brain). Corresponding example image data is available [on Zenodo](https://zenodo.org/records/14884160)
 
 2. **Modify the configuration files**
 
@@ -49,12 +51,23 @@ This section will guide you on how to run the workflow using the mouse brain dat
 
 3. **Load nextflow**
 
-   To run the workflow, you need the Nextflow module. If you are using the EMBL cluster, you can easily load it by running the following command:
+   To run the workflow, you need to install [Nextflow](https://www.nextflow.io/docs/latest/install.html).
+   After installation, your Nextflow environment needs to be activated, e.g., using 
+   ```bash
+   conda activate nextflow
+   ```
+   or, on a computer cluster, it may be possible to access nextflow via easy-build using 
    ```bash
    module load Nextflow
+   ```
 
 4. **Run the workflow**
 
 	Once you’ve updated your configuration files and loaded Nextflow, you can execute the workflow using the following command in your terminal:
 	```bash
 	nextflow run nf_workflow.nf -profile apptainer 
+  ```
+
+## Troubleshooting
+
+You are welcome to ask us by [writing an issue](https://github.com/embl-cba/iss-nf/issues).
