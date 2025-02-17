@@ -23,7 +23,7 @@ git clone https://github.com/embl-cba/iss-nf.git
 
 ## How to run the code
 
-1. **Prepare Your Dataset**
+### 1. Prepare Your Dataset
 
 To run the workflow you need the following data:
 - Image data with naming scheme: `r<Round>_<Channel>.tiff`, where "Round" is a one-based integer and "Channel" is free text without spaces.
@@ -33,7 +33,7 @@ To run the workflow you need the following data:
 
 Examples for a codebook and metadata can be [found here](examples/mouse_brain). Corresponding example image data is available [on Zenodo](https://zenodo.org/records/14884160)
 
-2. **Modify the configuration files**
+### 2. Modify the configuration files
 
 - **Update the Input Directory:**
   In the `nextflow.config` file, locate the `INPUTDIR` variable and set it to the path of your dataset.
@@ -49,7 +49,7 @@ Examples for a codebook and metadata can be [found here](examples/mouse_brain). 
 - **Modify the metadata:**
   You’ll also need to update the `experiment_metadata.json` file. This file contains metadata about your dataset. Modify it to reflect the specifics of your data (e.g., number of rounds, channels, etc.).
 
-3. **Load nextflow**
+### 3. Load nextflow
 
   To run the workflow, you need to install [Nextflow](https://www.nextflow.io/docs/latest/install.html).
   After installation, your Nextflow environment needs to be activated, e.g., using 
@@ -61,7 +61,7 @@ Examples for a codebook and metadata can be [found here](examples/mouse_brain). 
   module load Nextflow
   ```
 
-4. **Run the workflow**
+### 4. Run the workflow
 
 Once you’ve updated your configuration files and loaded Nextflow, you can execute the workflow using the following command in your terminal:
 ```bash
