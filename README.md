@@ -26,12 +26,13 @@ git clone https://github.com/embl-cba/iss-nf.git
 ### 1. Prepare Your Dataset
 
 To run the workflow you need the following data:
-- Image data with naming scheme: `r<Round>_<Channel>.tiff`, where "Round" is a one-based integer and "Channel" is free text without spaces.
-- For example: `r1_DAPI.tiff`
-- Codebook: `codebook.json`, as defined by StarFISH (FIXME: Add link to specification)
-- Experimental metadata `experimental_metadata.json`
+- Image data with naming scheme: `r<Round>_<Channel>.tiff`, where `<Round>` is a **one-based integer** and `<Channel>` is **free text** without spaces.
+  - For example: `r1_DAPI.tiff`
+- Codebook: `codebook.json`, as defined by StarFISH (FIXME: Find link to specification)
+- Experimental metadata: `experimental_metadata.json`
 
-Examples for a codebook and metadata can be [found here](examples/mouse_brain). Corresponding example image data is available [on Zenodo](https://zenodo.org/records/14884160)
+Examples for a codebook and metadata can be [found in this repo](examples/mouse_brain). 
+Corresponding example image data is available for download [on Zenodo](https://zenodo.org/records/14884160).
 
 ### 2. Modify the configuration files
 
@@ -52,11 +53,11 @@ Examples for a codebook and metadata can be [found here](examples/mouse_brain). 
 ### 3. Load nextflow
 
   To run the workflow, you need to install [Nextflow](https://www.nextflow.io/docs/latest/install.html).
-  After installation, your Nextflow environment needs to be activated, e.g., using 
+  After installation, your Nextflow environment needs to be activated, e.g., using conda:
   ```bash
   conda activate nextflow
   ```
-  or, on a computer cluster, it may be possible to access nextflow via easy-build using 
+  On a computer cluster, it may be possible to access nextflow via easy-build modules: 
   ```bash
   module load Nextflow
   ```
