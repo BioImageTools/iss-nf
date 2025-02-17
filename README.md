@@ -1,3 +1,7 @@
+# DEPRECATED
+
+Please go to: https://github.com/embl-cba/iss-nf
+
 # Reusable in-situ sequencing analysis workflow orchestrated by Nextflow
 
 Nextflow workflow for the automated creation of a transcript map from ISS image data.
