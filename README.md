@@ -26,8 +26,10 @@ git clone https://github.com/embl-cba/iss-nf.git
 ### 1. Prepare Your Dataset
 
 To run the workflow you need the following data:
-- Image data with naming scheme: `r<Round>_<Channel>.tiff`, where `<Round>` is a **one-based integer** and `<Channel>` is **free text** without spaces.
-  - For example: `r1_DAPI.tiff`
+- Image data with naming scheme: `r<Round>_<Channel>.tiff`, with
+  - `<Round>`: **one-based integer**
+  - `<Channel>`: **free text without spaces**
+  - Example: `r1_DAPI.tiff`
 - Codebook: `codebook.json`, as defined by StarFISH (FIXME: Find link to specification)
 - Experimental metadata: `experimental_metadata.json`
 
