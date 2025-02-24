@@ -34,9 +34,9 @@ To run the workflow you need the following data:
 #### Example data
 
 - **Mouse brain dataset**
-  - [Codebook and metadata in this repo](examples/mouse_brain). 
-  - [Formatted image data, codebook and metadata on Zenodo (11 GB)](https://zenodo.org/records/14884160)
-    - [Original image data](https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700)
+  - Codebook and metadata are [available in this repo](examples/mouse_brain). 
+  - Formatted image data, codebook and metadata are [available on Zenodo (11 GB)](https://zenodo.org/records/14884160)
+    - The original data can be found [on the BioImage Archive](https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700)
 
 ### 2. Modify the configuration files
 
