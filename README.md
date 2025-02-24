@@ -31,8 +31,12 @@ To run the workflow you need the following data:
 - Codebook: `codebook.json`, as defined by StarFISH (FIXME: Find link to specification)
 - Experimental metadata: `experimental_metadata.json`
 
-Examples for a codebook and metadata can be [found in this repo](examples/mouse_brain). 
-Corresponding example image data is available for download [on Zenodo](https://zenodo.org/records/14884160).
+#### Example data
+
+- **Mouse brain dataset**
+  - [Codebook and metadata in this repo](examples/mouse_brain). 
+  - [Formatted image data, codebook and metadata on Zenodo (11 GB)](https://zenodo.org/records/14884160)
+    - [Original image data](https://www.ebi.ac.uk/biostudies/bioimages/studies/S-BSST700)
 
 ### 2. Modify the configuration files
 
