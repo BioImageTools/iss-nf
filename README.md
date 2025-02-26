@@ -30,7 +30,7 @@ To run the workflow you need the following data:
   - `<Round>`: **one-based integer**
   - `<Channel>`: **free text without spaces**
   - Example: `r1_DAPI.tiff`
-- Codebook: `codebook.json`, as defined by StarFISH (FIXME: Find link to specification)
+- Codebook: `codebook.json`, [as defined by StarFISH](https://spacetx-starfish.readthedocs.io/en/latest/help_and_reference/spacetx-format/SpaceTxFormat/index.html#codebook)
 - Experimental metadata: `experimental_metadata.json`
 
 #### Example data
