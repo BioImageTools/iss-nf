@@ -74,6 +74,14 @@ Once you’ve updated your configuration files and loaded Nextflow, you can exec
 ```bash
 nextflow run nf_workflow.nf -profile apptainer 
 ```
+## Related Paper
+
+This workflow is described in the following preprint:
+
+> **Vakili, N., Gonzalez-Tirado, S., Kurzawa, N., Dvornikov, D., Mokhtari, Z., Wippich, F., Bergamini, G., Pepperkok, R., Tischer, C., & Vale-Silva, L. A.** (2025). *iss-nf: A Nextflow-based end-to-end in situ sequencing decoding workflow*. bioRxiv. https://www.biorxiv.org/content/10.1101/2025.10.16.682795v1  
+
+If you use this repository or its components, please cite the above paper.
+
 
 ## Troubleshooting
 
